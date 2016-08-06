@@ -4,6 +4,7 @@
         "user": "",
         "password": "",
         "port": 3306,
+        "database": "weibo_server",
         "timeZone": "+08:00",
         "forceSync": true
     },
