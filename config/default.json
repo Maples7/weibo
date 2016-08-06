@@ -1,0 +1,31 @@
+{
+    "mysql": {
+        "host": "",
+        "user": "",
+        "password": "",
+        "port": 3306,
+        "timeZone": "+08:00",
+        "forceSync": true
+    },
+    "session": {
+        "name": "connect.sessionId",
+        "secret": "weibo-restful-api-server",
+        "resave": true,
+        "rolling": true,
+        "unset": "destroy",
+        "saveUninitialized": true,
+        "cookie": {
+            "maxAge": 604800000,
+            "httpOnly": true,
+            "domain": "",
+            "path": "/"
+        }
+    },
+    "redis": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "db": 0,
+        "sessionDB": 1,
+        "logging": true
+    }
+}
