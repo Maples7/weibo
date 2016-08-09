@@ -32,7 +32,7 @@ db.sequelize.sync({force: config.get('mysql.forceSync')}).catch(err => {
     process.exit(1);
 });
 
-app.use(routes);
+// app.use(routes);
 // app.use(notFound);
 
 module.exports = app;
