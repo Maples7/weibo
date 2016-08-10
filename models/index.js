@@ -16,9 +16,9 @@ let sequelize = new Sequelize(config.get('mysql.database'), config.get('mysql.us
     }
 });
 
-sequelize.authenticate().then((msg) => {
+sequelize.authenticate().then(msg => {
     console.log('MySQL Connection with Sequelize has been established successfully.\n');
-}).catch((err) => {
+}).catch(err => {
     console.log('Unable to connect to the database: ', err);
 });
 
