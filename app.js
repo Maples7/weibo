@@ -11,6 +11,7 @@ const res_api = require('res.api');
 
 const routes = require('./routes');
 const db = require('./models');
+const notFound = require('./middlewares/notFound');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(require('cors')());
 app.use(res_api);
 // app.use(express.static(path.join(__dirname, 'public')));
 
@@ -34,7 +36,7 @@ db.sync({force: config.get('mysql.forceSync')}).catch(err => {
     process.exit(1);
 });
 
-// app.use(routes);
-// app.use(notFound);
+app.use(routes);
+app.use(notFound);
 
 module.exports = app;
