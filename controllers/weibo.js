@@ -51,7 +51,7 @@ exports.addWeibo = (req, res, next) => {
 
     return weibo.addWeibo(wbInfo)
         .then(data => res.api(data)).catch(err => res.api_error(err));
-}
+};
 
 /**
  * 删除微博 - DELETE
@@ -65,4 +65,31 @@ exports.deleteWeibo = (req, res, next) => {
 
     return weibo.deleteWeibo(wbId, user)
         .then(data => res.api(data)).catch(err => res.api_error(err));
-}
+};
+
+/**
+ * 发表评论 - POST
+ * @param {Object}      req
+ * @param {Number}      req.body.weiboId        - 被评论的微博Id
+ * @param {String}      req.body.content        - 评论内容
+ * @param {Number}      [req.body.replyId]      - 被回复评论的Id，不传值表明为简单评论
+ * @param {Number}      [req.body.forwardSync]  - 是否同时“转发”，1是0否
+ * @param {Object}      res
+ * @param {Function}    next
+ */
+exports.addComment = (req, res, next) => {
+    let cmInfo = {
+        weiboId: req.body.weiboId,
+        content: req.body.content 
+    };
+
+    if (_.values(cmInfo).filter(Boolean).length < Object.keys(cmInfo).length) {
+        return res.api(...status.lackParams);
+    }
+
+    cmInfo.replyId = req.body.replyId;
+    cmInfo.author = req.session.name;
+
+    return weibo.addComment(cmInfo, req.body.forwardSync)
+        .then(data => res.api(data)).catch(err => res.api_error(err));
+};

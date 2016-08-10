@@ -74,4 +74,33 @@ module.exports = new class {
             );
         });
     }
+
+    /**
+     * 添加评论
+     */
+    addComment(cmInfo, forwardSync = false) {
+        let keyValues = {
+            weiboId: cmInfo.weiboId,
+            content: cmInfo.content,
+            author: cmInfo.author,
+            replyId: cmInfo.replyId || null,
+            createTime: Date.now()
+        };
+
+        return db.sequelize.transaction(t => {
+            return db.Comment.create(keyValues, {
+                raw: true,
+                type: db.sequelize.QueryTypes.RAW,
+                transaction: t
+            }).tap(() => {
+                if (forwardSync) {
+                    if (keyValues.replyId) {
+
+                    } else {
+                        
+                    }
+                }
+            })
+        })
+    }
 }();
