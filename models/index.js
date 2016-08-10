@@ -3,7 +3,8 @@ const config = require('config');
 const _ = require('lodash');
 
 let models = {
-    // weibo: './weibo'
+    weibo: './weibo',
+    user: './user'
 };
 
 let sequelize = new Sequelize(config.get('mysql.database'), config.get('mysql.user'), config.get('mysql.password'), {
@@ -23,9 +24,7 @@ sequelize.authenticate().then(msg => {
 });
 
 for (let model in models) {
-    models[model] = sequelize.import(models[model]);
+    sequelize.import(models[model]);
 }
 
-module.exports = _.merge(models, {
-    sequelize: sequelize
-});
+module.exports = sequelize;

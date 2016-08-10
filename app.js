@@ -7,6 +7,7 @@ const config = require('config');
 const expressSession = require('express-session');
 const sessionStore = require('connect-redis')(expressSession);
 const _ = require('lodash');
+const res_api = require('res.api');
 
 const routes = require('./routes');
 const db = require('./models');
@@ -17,6 +18,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(res_api);
 // app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(expressSession(_.merge(config.get('session'), {
@@ -27,7 +29,7 @@ app.use(expressSession(_.merge(config.get('session'), {
     })
 })));
 
-db.sequelize.sync({force: config.get('mysql.forceSync')}).catch(err => {
+db.sync({force: config.get('mysql.forceSync')}).catch(err => {
     console.log('MySQL sync with Sequelize is failure: ', err);
     process.exit(1);
 });
