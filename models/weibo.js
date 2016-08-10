@@ -86,4 +86,4 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Weibo', {
     }
 }, {
     timestamps: false
-})
+});

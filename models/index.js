@@ -2,11 +2,6 @@ const Sequelize = require('sequelize');
 const config = require('config');
 const _ = require('lodash');
 
-let models = {
-    weibo: './weibo',
-    user: './user'
-};
-
 let sequelize = new Sequelize(config.get('mysql.database'), config.get('mysql.user'), config.get('mysql.password'), {
     host: config.get('mysql.host'),
     port: config.get('mysql.port'),
@@ -23,8 +18,11 @@ sequelize.authenticate().then(msg => {
     console.log('Unable to connect to the database: ', err);
 });
 
-for (let model in models) {
-    sequelize.import(models[model]);
-}
+[
+    './weibo',
+    './user',
+    './comment',
+    './weibo_favor'
+].map(model => sequelize.import(model));
 
 module.exports = sequelize;
