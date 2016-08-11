@@ -45,10 +45,9 @@ exports.addWeibo = (req, res, next) => {
     wbInfo.originalId = req.body.originalId;
     wbInfo.author = req.session.name;
 
-    if (wbInfo.forwardId && !wbInfo.originalId || 
-        !wbInfo.forwardId && wbInfo.originalId) {
-            return res.api(...status.xorParams);
-        }
+    if (!wbInfo.forwardId !== !wbInfo.originalId) {     // XOR
+        return res.api(...status.xorParams);
+    }
 
     return weibo.addWeibo(wbInfo, {
         commentSync: req.body.commentSync
@@ -97,4 +96,37 @@ exports.addComment = (req, res, next) => {
     return weibo.addComment(cmInfo, {
        forwardSync: req.body.forwardSync
     }).then(data => res.api(data)).catch(err => res.api_error(err));
+};
+
+/**
+ * 获取某一微博的评论列表 - GET
+ * @param {Object}      req
+ * @param {Number}      [req.query.limit]   - 单次请求条数，默认为 20
+ * @param {Number}      [req.query.offset]  - 偏移量，默认为 0
+ * @param {Object}      res
+ * @param {Function}    next
+ */
+exports.getCommentList = (req, res, next) => {
+    let wbId = req.params.wbId;
+    let options = {
+        limit: req.query.limit || 20,
+        offset: req.query.offset || 0
+    };
+
+    return weibo.getCommentList(wbId, options)
+        .then(data => res.api(data)).catch(err => res.api_error(err));
+};
+
+/**
+ * 给某微博点赞 - POST
+ * @param {Object}      req
+ * @param {Object}      res
+ * @param {Function}    next
+ */
+exports.addWeiboFavor = (req, res, next) => {
+    let wbId = req.params.wbId;
+    let user = req.session.name;
+
+    return weibo.addWeiboFavor(wbId, user)
+        .then(data => res.api(data)).catch(err => res.api_error(err));
 };

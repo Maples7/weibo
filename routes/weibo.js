@@ -15,8 +15,8 @@ router.get('/weibos/:wbId', weibo.getWeiboDetail);
 router.post('/weibos', check.checkLogin, weibo.addWeibo);
 router.delete('/weibos/:wbId', check.checkLogin, weibo.deleteWeibo);
 
-// router.get('/weibos/:wbId/comments', weibo.getCommentList);
+router.get('/weibos/:wbId/comments', weibo.getCommentList);
 router.post('/weibos/:wbId/comments', check.checkLogin, weibo.addComment);
 
-// router.post('/weibos/:wbId/favor', check.checkLogin, weibo.addWeiboFavor);
+router.post('/weibos/:wbId/favor', check.checkLogin, weibo.addWeiboFavor);
 // router.delete('/weibo/:wbId/favor', check.checkLogin, weibo.deleteWeiboFavor);

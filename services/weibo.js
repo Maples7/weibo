@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 const db = require('../models');
 
 module.exports = new class {
@@ -136,4 +138,39 @@ module.exports = new class {
     static getCommentDetail(cmId) {
         return db.Comment.findById(cmId);
     }
+
+    /**
+     * 获取评论列表
+     */
+    getCommentList (wbId, options) {
+        let finalAns = {};
+
+        return db.Comment.findAll({
+            where: {
+                weiboId: wbId,
+                deleteTime: 0
+            },
+            attributes: ['id'],
+            order: [['createTime', 'DESC']]
+        }).get('id').map(this.getCommentDetail).then(cmList => {
+            if (options.offset === 0) {
+                let totalFavorCount = _.sumBy(cmList, o => o.favorCount);
+                let totalCommentCount = cmList.length;
+                let criticalValue = totalFavorCount / totalCommentCount;
+                finalAns.hotComments = 
+                    cmList.filter(o => o.favorCount > criticalValue).slice(0, options.limit);
+                finalAns.ordinaryComments = 
+                    cmList.filter(o => o.favorCount <= criticalValue)
+                        .slice(0, options.limit - finalAns.hotComments.length);
+            } else {
+                finalAns.ordinaryComments =
+                    cmList.slice(options.offset, options.offset + options.limit);
+            }
+            return finalAns;
+        });     
+    }
+
+    /**
+     * 给微博点赞
+     */
 }();
