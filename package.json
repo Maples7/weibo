@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "bcrypt": "^0.11.0",
     "bluebird": "^3.4.1",
     "body-parser": "~1.15.1",
     "config": "^1.21.0",

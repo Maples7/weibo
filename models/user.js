@@ -10,7 +10,12 @@ module.exports = (sequelize, DataTypes) => sequelize.define('User', {
         allowNull: false,
         unique: true,
         type: DataTypes.STRING,
-        comment: '用户邮箱'
+        comment: '用户邮箱，唯一'
+    },
+    password: {
+        allowNull: false,
+        type: DataTypes.STRING,
+        comment: '用户密码，crypt加密'
     },
     headPic: {
         allowNull: true,
