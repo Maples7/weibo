@@ -34,7 +34,7 @@ module.exports = new class {
     /**
      * 发表或转发微博
      */
-    addWeibo(wbInfo) {
+    addWeibo(wbInfo, options = {commentSync = false, t = undefined}) {
         let keyValues = {
             content: wbInfo.content,
             author: wbInfo.author,
@@ -47,9 +47,18 @@ module.exports = new class {
             return db.Weibo.create(keyValues, {
                 raw: true,
                 type: db.sequelize.QueryTypes.RAW,
-                transaction: t
+                transaction: options.t || t
             }).tap(() => {
                 // TODO: 更新用户微博数统计
+            }).tap(() => {
+                if (options.commentSync) {
+                    this.addComment({
+                        weiboId: keyValues.forwardId,
+                        content: keyValues.content,
+                        author: keyValues.author,
+                        from: keyValues.from
+                    }, {t: t});
+                }
             }).return('操作成功');
         });
     }
@@ -78,7 +87,7 @@ module.exports = new class {
     /**
      * 添加评论
      */
-    addComment(cmInfo, forwardSync = false) {
+    addComment(cmInfo, options = {forwardSync = false, t = undefined}) {
         let keyValues = {
             weiboId: cmInfo.weiboId,
             content: cmInfo.content,
@@ -92,9 +101,9 @@ module.exports = new class {
             return db.Comment.create(keyValues, {
                 raw: true,
                 type: db.sequelize.QueryTypes.RAW,
-                transaction: t
+                transaction: options.t || t
             }).tap(() => {
-                if (forwardSync) {
+                if (options.forwardSync) {
                     if (keyValues.replyId) {
                         this.getCommentDetail(keyValues.replyId).then(cmDetail => {
                             forwardContent += '回复@' + cmDetail.author + ':'
@@ -104,21 +113,20 @@ module.exports = new class {
                     } else {
                         forwardContent += keyValues.content;
                     }
-                }
-            }).then(() => {
-                return this.getWeiboDetail(keyValues.weiboId).then(wbDetail => {
-                    if (wbDetail.content) {
-                        forwardContent += '//@' + wbDetail.author + ':' + wbDetail.content
-                    }
-                    return this.addWeibo({
-                        content: forwardContent,
-                        author: keyValues.author,
-                        forwardId: keyValues.weiboId,
-                        originalId: wbDetail.originalId,
-                        from: cmInfo.from
+                    this.getWeiboDetail(keyValues.weiboId).then(wbDetail => {
+                        if (wbDetail.content) {
+                            forwardContent += '//@' + wbDetail.author + ':' + wbDetail.content
+                        }
+                        this.addWeibo({
+                            content: forwardContent,
+                            author: keyValues.author,
+                            forwardId: keyValues.weiboId,
+                            originalId: wbDetail.originalId,
+                            from: cmInfo.from
+                        }, {t: t});
                     });
-                });
-            });
+                }
+            }).return('操作成功');
         });
     }
 

@@ -27,6 +27,7 @@ exports.getWeiboDetail = (req, res, next) => {
  * @param {String}      req.body.from           - “来自于”，客户端信息
  * @param {Number}      [req.body.forwardWbId]  - 转发微博时，直接被转发微博的Id
  * @param {Number}      [req.body.originalWbId] - 转发链顶端的微博id
+ * @param {Number}      [req.body.commentSync]  - 是否转发微博的同时评论，1是0否
  * @param {Object}      res
  * @param {Function}    next
  */
@@ -49,8 +50,9 @@ exports.addWeibo = (req, res, next) => {
             return res.api(...status.xorParams);
         }
 
-    return weibo.addWeibo(wbInfo)
-        .then(data => res.api(data)).catch(err => res.api_error(err));
+    return weibo.addWeibo(wbInfo, {
+        commentSync: req.body.commentSync
+    }).then(data => res.api(data)).catch(err => res.api_error(err));
 };
 
 /**
@@ -92,6 +94,7 @@ exports.addComment = (req, res, next) => {
     cmInfo.replyId = req.body.replyId;
     cmInfo.author = req.session.name;
 
-    return weibo.addComment(cmInfo, req.body.forwardSync)
-        .then(data => res.api(data)).catch(err => res.api_error(err));
+    return weibo.addComment(cmInfo, {
+       forwardSync: req.body.forwardSync
+    }).then(data => res.api(data)).catch(err => res.api_error(err));
 };
