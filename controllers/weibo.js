@@ -72,6 +72,7 @@ exports.deleteWeibo = (req, res, next) => {
  * @param {Object}      req
  * @param {Number}      req.body.weiboId        - 被评论的微博Id
  * @param {String}      req.body.content        - 评论内容
+ * @param {String}      req.body.from           - “来自于”，客户端信息
  * @param {Number}      [req.body.replyId]      - 被回复评论的Id，不传值表明为简单评论
  * @param {Number}      [req.body.forwardSync]  - 是否同时“转发”，1是0否
  * @param {Object}      res
@@ -80,7 +81,8 @@ exports.deleteWeibo = (req, res, next) => {
 exports.addComment = (req, res, next) => {
     let cmInfo = {
         weiboId: req.body.weiboId,
-        content: req.body.content 
+        content: req.body.content,
+        from: req.body.from 
     };
 
     if (_.values(cmInfo).filter(Boolean).length < Object.keys(cmInfo).length) {

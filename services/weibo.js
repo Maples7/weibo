@@ -88,6 +88,7 @@ module.exports = new class {
         };
 
         return db.sequelize.transaction(t => {
+            let forwardContent = '';
             return db.Comment.create(keyValues, {
                 raw: true,
                 type: db.sequelize.QueryTypes.RAW,
@@ -95,12 +96,36 @@ module.exports = new class {
             }).tap(() => {
                 if (forwardSync) {
                     if (keyValues.replyId) {
-
+                        this.getCommentDetail(keyValues.replyId).then(cmDetail => {
+                            forwardContent += '回复@' + cmDetail.author + ':'
+                                + keyValues.content + '//@' + cmDetail.author + ':'
+                                + cmDetail.content;
+                        });
                     } else {
-                        
+                        forwardContent += keyValues.content;
                     }
                 }
-            })
-        })
+            }).then(() => {
+                return this.getWeiboDetail(keyValues.weiboId).then(wbDetail => {
+                    if (wbDetail.content) {
+                        forwardContent += '//@' + wbDetail.author + ':' + wbDetail.content
+                    }
+                    return this.addWeibo({
+                        content: forwardContent,
+                        author: keyValues.author,
+                        forwardId: keyValues.weiboId,
+                        originalId: wbDetail.originalId,
+                        from: cmInfo.from
+                    });
+                });
+            });
+        });
+    }
+
+    /**
+     * 获取单条评论详情
+     */
+    static getCommentDetail(cmId) {
+        return db.Comment.findById(cmId);
     }
 }();
