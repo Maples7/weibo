@@ -68,7 +68,7 @@ exports.login = function (req, res, next) {
   user.login(userObj)
   .then(function (ret) {
     req.session = ret;
-    return res.api('登陆成功');
+    return res.api('登录成功');
   })
   .catch(function (err) {
     return res.api_error(err);
