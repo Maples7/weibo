@@ -182,7 +182,7 @@ module.exports = new class {
                 userName: user
             }, { transaction: t }).then(created => {
                 if (created) {
-                    return this.updateFavorCount(table, id, '+ 1', {t: t})
+                    return this.updateFavorCount(table, id, '+ 1', {t})
                         .then(result =>
                             result.affectedRows ? '点赞成功' : Promise.reject('点赞失败') 
                         )
@@ -206,7 +206,7 @@ module.exports = new class {
                 transaction: t
             }).then(deletedRows => {
                 if (deletedRows) {
-                    return this.updateFavorCount(table, id, '- 1', {t: t})
+                    return this.updateFavorCount(table, id, '- 1', {t})
                         .then(result =>
                             result.affectedRows ? '消赞成功' : Promise.reject('消赞失败')
                         )
