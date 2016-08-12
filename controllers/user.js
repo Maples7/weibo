@@ -81,7 +81,49 @@ exports.login = function (req, res, next) {
  * @param {Object} req
  */
 exports.logout = function (req, res, next) {
-    req.session.destoy();
-    res.clearCookie(req.query.name);
-    return res.api(...status.logoutParams);
+  req.session.destoy();
+  res.clearCookie(req.query.name);
+  return res.api(...status.logoutParams);
 };
+
+/**
+ * 用户修改密码 - PUT
+ * @param {Object} req
+ * @param {String} req.name
+ * @param {String} req.email
+ * @param {String} req.password
+ * @param {String} [req.body.headPic]  - 用户头像
+ * @param {Number} [req.body.sex]      - 性别，0男1女，默认为null
+ * @param {String} [req.body.bio]      - 用户简介
+ */
+exports.modifyPassword = function (req, res, next) {
+  if (!req.body.password || !(req.body.name || req.body.email)) {
+    return res.api(...status.lackParams);
+  }
+
+  let userObj = {
+    email: req.body.email,
+    name: req.body.name,
+    password: req.body.password
+  };
+
+  user.modifyPassword(userObj)
+  .then(function (ret) {
+    return res.api(...status.modifyPasswordParams);
+  })
+  .catch(function (err) {
+    return res.api(...status.modifyPasswordFailParams);
+  });
+}
+
+/**
+ * 用户修改信息 - PUT
+ * @param {Object} req
+ * @param {String} req.name
+ * @param {String} req.email
+ * @param {String} req.password
+ * @param {String} 
+ */
+exports.modify = function (req, res, next) {
+
+}

@@ -38,5 +38,41 @@ function register(userObj) {
   let password = encode(userObj);
   let defaults = {password: password};
   
-  db.find();
+  return db.User.findOne({where: {name: userObj.name}})
+  .then(function (ret) {
+    if (ret) {
+      throw (new Error('用户名已被注册'));
+    }
+    else {
+      return null;
+    }
+  })
+  .then(function () {
+    return db.User.findOne({where : {email: userObj.email}});
+  })
+  .then(function (ret) {
+    if (ret) {
+      throw (new Error('邮箱已被注册'));
+    }
+    else {
+      return null;
+    }
+  })
+  .then(function () {
+    return db.User.create({
+      name: userObj.name,
+      email: userObj.email,
+      password: password,
+      headPic: userObj.headPic,
+      bio: userObj.bio,
+      sex: userObj.sex,
+      fans: 0,
+      follow: 0,
+      weiboCount: 0,
+      createTime: (new Date()).Format('yyyy-MM-dd hh:mm:ss') 
+    });
+  })
+  .catch(function (err) {
+    throw err;
+  });
 }

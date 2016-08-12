@@ -44,7 +44,7 @@ module.exports = (sequelize, DataTypes) => sequelize.define('User', {
         defaultValue: 0,
         isInt: true,
         type: DataTypes.INTEGER.UNSIGNED,
-        comment: '用户关注其他用户数'
+        comment: '用户关注(其他用户)数'
     },
     weiboCount: {
         allowNull: false,
