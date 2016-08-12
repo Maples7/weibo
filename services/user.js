@@ -65,8 +65,5 @@ function register(userObj) {
       weiboCount: 0,
       createTime: Date.now() 
     });
-  })
-  .catch(function (err) {
-    throw err;
   });
 }
