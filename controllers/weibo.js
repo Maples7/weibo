@@ -127,6 +127,48 @@ exports.addWeiboFavor = (req, res, next) => {
     let wbId = req.params.wbId;
     let user = req.session.name;
 
-    return weibo.addWeiboFavor(wbId, user)
+    return weibo.addFavor('Weibo', wbId, user)
+        .then(data => res.api(data)).catch(err => res.api_error(err));
+};
+
+/**
+ * 给某微博消赞 - DELETE
+ * @param {Object}      req
+ * @param {Object}      res
+ * @param {Function}    next
+ */
+exports.deleteWeiboFavor = (req, res, next) => {
+    let wbId = req.params.wbId;
+    let user = req.session.name;
+
+    return weibo.deleteFavor('Weibo', wbId, user)
+        .then(data => res.api(data)).catch(err => res.api_error(err));
+};
+
+/**
+ * 给某评论点赞 - POST
+ * @param {Object}      req
+ * @param {Object}      res
+ * @param {Function}    next
+ */
+exports.addCommentFavor = (req, res, next) => {
+    let cmId = req.params.cmId;
+    let user = req.session.name;
+
+    return weibo.addFavor('Comment', cmId, user)
+        .then(data => res.api(data)).catch(err => res.api_error(err));
+};
+
+/**
+ * 给某评论消赞 - DELETE
+ * @param {Object}      req
+ * @param {Object}      res
+ * @param {Function}    next
+ */
+exports.deleteWeiboFavor = (req, res, next) => {
+    let cmId = req.params.cmId;
+    let user = req.session.name;
+
+    return weibo.deleteFavor('Comment', cmId, user)
         .then(data => res.api(data)).catch(err => res.api_error(err));
 };

@@ -1,6 +1,8 @@
 const _ = require('lodash');
+const Promise = require('bluebird');
 
 const db = require('../models');
+
 
 module.exports = new class {
     /**
@@ -142,7 +144,7 @@ module.exports = new class {
     /**
      * 获取评论列表
      */
-    getCommentList (wbId, options) {
+    getCommentList(wbId, options) {
         let finalAns = {};
 
         return db.Comment.findAll({
@@ -171,6 +173,65 @@ module.exports = new class {
     }
 
     /**
-     * 给微博点赞
+     * 给微博/评论点赞
      */
+    addFavor(table, id, user) {
+        return db.sequelize.transaction(t =>
+            db[table + 'Favor'].upsert({
+                [table.toLowerCase() + 'Id']: id, 
+                userName: user
+            }, { transaction: t }).then(created => {
+                if (created) {
+                    return this.updateFavorCount(table, id, '+ 1', {t: t})
+                        .then(result =>
+                            result.affectedRows ? '点赞成功' : Promise.reject('点赞失败') 
+                        )
+                } else {
+                    return Promise.reject('已经赞过');
+                }
+            })
+        );
+    }
+
+    /**
+     * 给微博/评论消赞
+     */
+    deleteFavor(table, id, user) {
+        return db.sequelize.transaction(t =>
+            db[table + 'Favor'].destroy({
+                where: {
+                    [table.toLowerCase() + 'Id']: id, 
+                    userName: user
+                },
+                transaction: t
+            }).then(deletedRows => {
+                if (deletedRows) {
+                    return this.updateFavorCount(table, id, '- 1', {t: t})
+                        .then(result =>
+                            result.affectedRows ? '消赞成功' : Promise.reject('消赞失败')
+                        )
+                } else {
+                    return Promise.reject('尚未点赞');
+                }
+            })
+        );
+    }
+
+    /**
+     * 更新微博/评论点赞数
+     */
+    static updateFavorCount(table, id, operation, options) {
+        table = table.toLowerCase() + 's';
+        let sqlStr = '' +
+            'UPDATE ' + table + ' ' +
+            'SET favorCount = favorCount ' + operation + ' ' +
+            'WHERE id = ? ';
+        return db.sequelize.query(sqlStr, {
+            replacements: [id],
+            type: db.sequelize.QueryTypes.RAW,
+            raw: true,
+            transaction: options.t
+        }).get(0);
+    }
 }();
+ 

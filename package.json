@@ -16,7 +16,6 @@
     "debug": "~2.2.0",
     "express": "~4.13.4",
     "express-session": "^1.14.0",
-    "formidable": "^1.0.17",
     "ioredis": "^2.2.0",
     "lodash": "^4.14.1",
     "morgan": "~1.7.0",
