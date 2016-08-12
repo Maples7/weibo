@@ -65,7 +65,7 @@ function register(userObj) {
       fans: 0,
       follow: 0,
       weiboCount: 0,
-      createTime: (new Date()).Format('yyyy-MM-dd hh:mm:ss') 
+      createTime: Date.now() 
     });
   });
 }
