@@ -38,13 +38,12 @@ exports.register = function (req, res, next) {
   userObj.bio = req.body.bio || '这家伙很懒，什么也没写';
   userObj.headPic = req.body.headPic || '';
 
-  // TODO: register service
   user.register(userObj)
   .then(function (ret) {
-    return res.api(...status.registerParams);
+    return res.api(ret);
   })
   .catch(function (err) {
-    return res.api(...status.registerFailParams);
+    return res.api_error(err);
   });
 };
 
@@ -69,10 +68,10 @@ exports.login = function (req, res, next) {
   user.login(userObj)
   .then(function (ret) {
     req.session = ret;
-    return res.api(...status.loginParams);
+    return res.api('登陆成功');
   })
   .catch(function (err) {
-    return res.api(...status.loginFailParams);
+    return res.api_error(err);
   })
 };
 
@@ -83,7 +82,7 @@ exports.login = function (req, res, next) {
 exports.logout = function (req, res, next) {
   req.session.destoy();
   res.clearCookie(req.query.name);
-  return res.api(...status.logoutParams);
+  return res.api('登出成功');
 };
 
 /**
@@ -109,10 +108,10 @@ exports.modifyPassword = function (req, res, next) {
 
   user.modifyPassword(userObj)
   .then(function (ret) {
-    return res.api(...status.modifyPasswordParams);
+    return res.api(ret);
   })
   .catch(function (err) {
-    return res.api(...status.modifyPasswordFailParams);
+    return res.api_error(err);
   });
 }
 

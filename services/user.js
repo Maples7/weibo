@@ -21,13 +21,7 @@ function login(userObj) {
     where.email = userObj.email;
   }
 
-  return db.User.findOne(where)
-  .then(function (ret) {
-    return ret;
-  })
-  .catch(function (err) {
-    return err;
-  });
+  return db.User.findOne(where);
 }
 
 /**
