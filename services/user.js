@@ -35,8 +35,7 @@ function register(userObj) {
   return db.User.findOne({where: {name: userObj.name}})
   .then(function (ret) {
     if (ret) {
-      // throw (new Error('用户名已被注册'));
-      // 这里改成 res.api(...resStatus) 那种
+      throw (new Error('用户名已被注册'));
     }
     else {
       return null;
@@ -47,8 +46,7 @@ function register(userObj) {
   })
   .then(function (ret) {
     if (ret) {
-      // throw (new Error('邮箱已被注册'));
-      // 这里改成 res.api(...resStatus) 那种
+      throw (new Error('邮箱已被注册'));
     }
     else {
       return null;
@@ -67,5 +65,8 @@ function register(userObj) {
       weiboCount: 0,
       createTime: Date.now() 
     });
+  })
+  .catch(function (err) {
+    throw err;
   });
 }
