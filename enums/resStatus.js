@@ -22,4 +22,4 @@ module.exports = {
         code: 20001,
         msg: 'invalid email addr'
     }]
-}
+};
