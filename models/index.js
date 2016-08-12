@@ -23,7 +23,8 @@ sequelize.authenticate().then(msg => {
     './user',
     './comment',
     './weibo_favor',
-    './relationship'
+    './relationship',
+    './group'
 ].map(model => sequelize.import(model));
 
 module.exports = sequelize;

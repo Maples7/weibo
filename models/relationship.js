@@ -25,4 +25,10 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Relationship', {
     type: DataTypes.STRING,
     comment: '被关注者分组'
   }
+}, {
+  indexes: [{
+    name: 'uniq_fans_follow_group',
+    fields: ['fans', 'follow', 'group'],
+    unique: true
+  }]
 });

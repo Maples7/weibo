@@ -46,6 +46,12 @@ module.exports = (sequelize, DataTypes) => sequelize.define('User', {
         type: DataTypes.INTEGER.UNSIGNED,
         comment: '用户关注(其他用户)数'
     },
+    // followGroup: {
+    //     allowNull: false,
+    //     defaultValue: '未分组 黑名单',
+    //     type: DataTypes.STRING,
+    //     comment: '用户分组名列表'
+    // },
     weiboCount: {
         allowNull: false,
         defaultValue: 0,
@@ -57,7 +63,13 @@ module.exports = (sequelize, DataTypes) => sequelize.define('User', {
         allowNull: false,
         defaultValue: 0,
         type: DataTypes.BIGINT.UNSIGNED,
-        comment: '用户创建时间，0表示用户账户未激活（邮箱未验证），激活后为激活的具体时间'
+        comment: '用户创建时间'
+    },
+    emailConfirm: {
+        allowNull: false,
+        defaultValue: false,
+        type: DataTypes.BOOLEAN,
+        comment: '用户邮箱是否已验证'
     }
 }, {
     timestamps: false
