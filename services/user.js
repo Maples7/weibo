@@ -9,7 +9,8 @@ const encode = require('../tools/crypt').encodePassword;
 
 exports.login = login;
 exports.register = register;
-exports.modify = modify;
+exports.modifyInfo = modifyInfo;
+exports.modifyPassword = modifyPassword;
 exports.follow = follow;
 exports.unfollow = unfollow;
 exports.black = black;
@@ -18,6 +19,11 @@ exports.regroup = regroup;
 exports.modifyWeiboCount = modifyWeiboCount;
 exports.modifyGroup = modifyGroup;
 exports.deleteGroup = deleteGroup;
+exports.getInfo = getInfo;
+exports.getFollow = getFollow;
+exports.getFans = getFans;
+exports.getGroup = getGroup;
+exports.getRemark = getRemark;
 
 /**
  * login 登录
@@ -80,25 +86,56 @@ function register(userObj) {
 }
 
 /**
- * modify 修改个人信息
+ * modifyInfo 修改个人信息
  */
-function modify(name, userObj) {
-  let password = encode(userObj.password);
-
+function modifyInfo(name, userObj) {
   return db.User.findOne({where: {name: name}})
   .then(function (ret) {
-    if (password != ret.password) {
-      ret.updateAttributes({password: password})
-      .then(r => '修改密码成功');
-    }
-    else if (userObj.email != ret.email) {
-      ret.updateAttributes({email: userObject.email, emailConfirm: false})
-      .then(r => '修改邮箱成功');
-    }
-    else {
-      ret.updateAttributes(userObj)
-      .then(r => '信息修改成功');
-    }
+    let email = ret.email;
+    return ret.updateAttributes(userObj)
+    .then(function (r) {
+      // 若用户名更改，需同时修改分组表、关注表
+      if (userObj.name != name) {
+        return db.Group.findAll({where : {creator: name}})
+        .then(results => Promise.each(results, function(result) {
+          result.updateAttributes({creator: userObj.name});
+        }))
+        .then(() => db.Relationship.findAll({where: {fans: name}}))
+        .then(results => Promise.each(results, function(result) {
+          result.updateAttributes({fans: userObj.name});
+        }))
+        .then(() => db.Relationship.findAll({where: {follow: name}}))
+        .then(results => Promise.each(results, function(result) {
+          result.updateAttributes({follow: userObj.name});
+        }))
+        .then(function () {
+          // 若邮箱更改，置假邮箱验证属性
+          if (userObj.email != email) {
+            return ret.updateAttributes({emailConfirm: false})
+            .then(() => ret);
+          }
+          return ret;
+        });
+      }
+      else if (userObj.email != email) {
+        return ret.updateAttributes({emailConfirm: false})
+        .then(() => ret);
+      }
+      return '信息修改成功';
+    });
+  });
+}
+
+/**
+ * modifyPassword 修改个人密码
+ */
+function modifyPassword(name, password) {
+  let pass = encode(password);
+
+  return db.User.findOne({where: {name: name}})
+  .then(function (r) {
+    r.updateAttributes({password: pass});
+    return pass;
   });
 }
 
@@ -339,4 +376,67 @@ function deleteGroup(creator, group) {
       });
     }));
   });
+}
+
+/**
+ * getInfo 获取个人信息
+ */
+function getInfo(name) {
+  return db.User.findOne({where: {name: name}})
+  .then(ret => ret)
+  .catch(err => err);
+}
+
+/**
+ * getRemark 获取备注名
+ */
+function getRemark(fans, follow) {
+  return db.Relationship.findOne({where: {fans: fans, follow: follow}})
+  .then(ret => ret.remark)
+  .catch(err => err);
+}
+
+/**
+ * getFollow 获取关注列表
+ */
+function getFollow(name) {
+  return db.Relationship.findAll({where: {fans: name}})
+  .then(ret => _.uniqBy(ret, 'follow'))
+  .catch(err => err);
+}
+
+/**
+ * getFans 获取粉丝列表
+ */
+function getFans(name) {
+  return db.Relationship.findAll({where: {follow: name}})
+  .then(ret => _.uniqBy(ret, 'fans'))
+  .catch(err => err);
+}
+
+/**
+ * getGroups 获取分组列表
+ */
+function getGroups(name) {
+  return db.Group.findAll({where: {creator: name}})
+  .then(ret => ret)
+  .catch(err => err);
+}
+
+/**
+ * getGroupDetail 获取分组详情
+ */
+function getGroupDetail(name, group) {
+  return db.Group.findOne({where: {creator: name, name: group}})
+  .then(ret => ret)
+  .catch(err => err);
+}
+
+/**
+ * getGroupMember 获取分组成员
+ */
+function getGroupMember(name, group) {
+  return db.Relationship.findAll({where: {fans: name, group: group}})
+  .then(ret => ret)
+  .catch(err => err);
 }

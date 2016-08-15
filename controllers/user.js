@@ -84,14 +84,35 @@ exports.logout = function (req, res, next) {
  * @param {Object} req.body
  * @param {String} req.body.name
  * @param {String} req.body.email
- * @param {String} req.body.password
  * @param {String} 
  */
 exports.modifyInfo = function (req, res, next) {
-  let where = {name: req.session.user.name};
-  
+  let name = req.session.user.name;
   return user.modify(name, req.body)
-  .then(ret => res.api(ret))
+  .then(function (ret) {
+    // 若修改了影响了登录的email/name，需重置session
+    if (ret != '信息修改成功') {
+      req.session.user = ret;
+    }
+    return res.api('信息修改成功');
+  })
+  .catch(err => res.api(err));
+}
+
+/**
+ * 用户修改密码 - PUT
+ * @param {Object} req.body
+ * @param {String} req.body.password
+ * @param {Object} req.session.user
+ * @param {String} req.session.user.name
+ */
+exports.modifyPassword = function (req, res, next) {
+  let name = req.session.user.name;
+  return user.modifyPassword(name, req.body.password)
+  .then(function (ret) {
+    req.session.user.password = ret;
+    return res.api('修改密码成功');
+  })
   .catch(err => res.api(err));
 }
 
@@ -107,6 +128,9 @@ exports.modifyRelationship = function (req, res, next) {
   let action = req.body.act;
   switch (action) {
     case 'follow':
+      if (req.session.user.name === req.body.follow) {
+        return res.api('不能关注自己');
+      }
       return user.follow(req.body)
       .then(ret => res.api('关注成功'))
       .catch(err => res.api(err));
@@ -171,5 +195,83 @@ exports.deleteGroup = function (req, res, next) {
   }
   return user.deleteGroup(req.body.old, req.session.user.name)
   .then(ret => res.api('删除分组成功'))
+  .catch(err => res.api(err));
+}
+
+/**
+ * 用户获取个人信息 - GET
+ * @param {Object} req.query
+ * @param {String} req.query.name
+ */
+exports.getInfo = function (req, res, next) {
+  return user.getInfo(req.query.name)
+  .then(function (result) {
+    if (req.query.name != req.session.name) {
+      return user.getRemark(req.session.name, req.query.name)
+      .then(function (remark) {
+        result.remark = remark;
+        return result;
+      });
+    }
+    return result;
+  })
+  .then(ret => res.api(ret))
+  .catch(err => res.api(err));
+}
+
+/**
+ * 用户获取关注列表 - GET
+ * @param {Object} req.query
+ * @param {String} req.query.name
+ */
+exports.getFollow = function (req, res, next) {
+  return user.getFollow(req.query.name)
+  .then(ret => res.api(ret))
+  .catch(err => res.api(err));
+}
+
+/**
+ * 用户获取粉丝列表 - GET
+ * @param {Object} req.query
+ * @param {String} req.query.name
+ */
+exports.getFans = function (req, res, next) {
+  return user.getFans(req.query.name)
+  .then(ret => res.api(ret))
+  .catch(err => res.api(err));
+}
+
+/**
+ * 用户获取分组列表 - GET
+ * @param {Object} req.query
+ * @param {String} req.query.name
+ */
+esports.getGroups = function (req, res, next) {
+  return user.getGroups(req.query.name)
+  .then(ret => res.api(ret))
+  .catch(err => res.api(err));
+}
+
+/**
+ * 用户获取分组描述 - GET
+ * @param {Object} req.query
+ * @param {String} req.query.name
+ * @param {String} req.query.group
+ */
+esports.getGroupDetail = function (req, res, next) {
+  return user.getGroupDetail(req.query.name, req.query.group)
+  .then(ret => res.api(ret))
+  .catch(err => res.api(err));
+}
+
+/**
+ * 用户获取分组成员 - GET
+ * @param {Object} req.query
+ * @param {String} req.query.name
+ * @param {String} req.query.group
+ */
+esports.getGroupMember = function (req, res, next) {
+  return user.getGroupMember(req.query.name, req.query.group)
+  .then(ret => res.api(ret))
   .catch(err => res.api(err));
 }
