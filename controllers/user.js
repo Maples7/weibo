@@ -4,7 +4,7 @@
 
 const _ = require('lodash');
 
-const user = require('./services/user');
+const user = require('../services/user');
 const status = require('../enums/resStatus');
 const verifyEmail = require('../helpers/verifyEmail');
 
@@ -246,7 +246,7 @@ exports.getFans = function (req, res, next) {
  * @param {Object} req.query
  * @param {String} req.query.name
  */
-esports.getGroups = function (req, res, next) {
+exports.getGroups = function (req, res, next) {
   return user.getGroups(req.query.name)
   .then(ret => res.api(ret))
   .catch(err => res.api(err));
@@ -258,7 +258,7 @@ esports.getGroups = function (req, res, next) {
  * @param {String} req.query.name
  * @param {String} req.query.group
  */
-esports.getGroupDetail = function (req, res, next) {
+exports.getGroupDetail = function (req, res, next) {
   return user.getGroupDetail(req.query.name, req.query.group)
   .then(ret => res.api(ret))
   .catch(err => res.api(err));
@@ -270,7 +270,7 @@ esports.getGroupDetail = function (req, res, next) {
  * @param {String} req.query.name
  * @param {String} req.query.group
  */
-esports.getGroupMember = function (req, res, next) {
+exports.getGroupMember = function (req, res, next) {
   return user.getGroupMember(req.query.name, req.query.group)
   .then(ret => res.api(ret))
   .catch(err => res.api(err));

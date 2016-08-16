@@ -13,17 +13,19 @@ exports.modifyInfo = modifyInfo;
 exports.modifyPassword = modifyPassword;
 exports.follow = follow;
 exports.unfollow = unfollow;
-exports.black = black;
 exports.remark = remark;
 exports.regroup = regroup;
+exports.black = black;
 exports.modifyWeiboCount = modifyWeiboCount;
 exports.modifyGroup = modifyGroup;
 exports.deleteGroup = deleteGroup;
 exports.getInfo = getInfo;
+exports.getRemark = getRemark;
 exports.getFollow = getFollow;
 exports.getFans = getFans;
-exports.getGroup = getGroup;
-exports.getRemark = getRemark;
+exports.getGroups = getGroups;
+exports.getGroupDetail = getGroupDetail;
+exports.getGroupMember = getGroupMember;
 
 /**
  * login 登录
@@ -205,7 +207,7 @@ function unfollow(info) {
 /**
  * remark 备注修改
  */
-function change(info) {
+function remark(info) {
   return db.Relationship.findAll({
     where: {
       fans: info.fans,
