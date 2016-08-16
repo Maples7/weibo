@@ -2,7 +2,7 @@
     "mysql": {
         "host": "127.0.0.1",
         "user": "root",
-        "password": "12345678",
+        "password": "root",
         "port": 3306,
         "database": "weibo_server",
         "timeZone": "+08:00",

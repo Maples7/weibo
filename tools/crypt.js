@@ -7,6 +7,6 @@ exports.encodePassword = encodePassword;
 
 function encodePassword(myPassword) {
   let md5 = crypto.createHash('md5');
-  let password = md5.update(req.body.password).digest('hex');
+  let password = md5.update(myPassword).digest('hex');
   return password;
 }

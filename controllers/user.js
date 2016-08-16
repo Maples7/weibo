@@ -63,7 +63,7 @@ exports.login = function (req, res, next) {
 
   user.login(userObj)
   .then(function (ret) {
-    req.session = ret;
+    req.session.user = ret;
     return res.api('登录成功');
   })
   .catch(err => res.api_error(err));
@@ -71,10 +71,10 @@ exports.login = function (req, res, next) {
 
 /**
  * 用户登出 - GET
- * @param {Object} req.body
+ * @param {Object} req.query
  */
 exports.logout = function (req, res, next) {
-  req.session.destoy();
+  req.session.destroy();
   res.clearCookie(req.query.name);
   return res.api('登出成功');
 };

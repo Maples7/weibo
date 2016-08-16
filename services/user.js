@@ -4,7 +4,7 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 
-const db = require('../models');
+const db = require('../models').models;
 const encode = require('../tools/crypt').encodePassword;
 
 exports.login = login;
@@ -32,7 +32,7 @@ exports.getGroupMember = getGroupMember;
  * @param userObj
  */
 function login(userObj) {
-  let password = encode(userObj);
+  let password = encode(userObj.password);
   let where = {password: password};
   if (userObj.name) {
     where.name = userObj.name;
@@ -49,7 +49,7 @@ function login(userObj) {
  * @param userObj
  */
 function register(userObj) {
-  let password = encode(userObj);
+  let password = encode(userObj.password);
   let defaults = {password: password};
   
   return db.User.findOne({where: {name: userObj.name}})
