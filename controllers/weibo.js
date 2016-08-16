@@ -165,7 +165,7 @@ exports.addCommentFavor = (req, res, next) => {
  * @param {Object}      res
  * @param {Function}    next
  */
-exports.deleteWeiboFavor = (req, res, next) => {
+exports.deleteCommentFavor = (req, res, next) => {
     let cmId = req.params.cmId;
     let user = req.session.name;
 
