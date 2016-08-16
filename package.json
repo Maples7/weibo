@@ -7,7 +7,7 @@
     "test": "mocha ./test/services/weibo.test.js"
   },
   "dependencies": {
-    "bcrypt": "^0.11.0",
+    "crypto": "*",
     "bluebird": "^3.4.1",
     "body-parser": "~1.15.1",
     "config": "^1.21.0",

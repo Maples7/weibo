@@ -1,19 +1,12 @@
 /**
  * Created by Ming Tae on 2016/8/11
  */
-var bcrypt = require('bcrypt');
+var crypto = require('crypto');
 
 exports.encodePassword = encodePassword;
 
 function encodePassword(myPassword) {
-  const saltRounds = 10;
-
-  bcrypt.hash(myPassword, saltRounds, function(err, hash) {
-    if (err) {
-      throw err;
-    }
-    else {
-      return hash;
-    } 
-  });
+  let md5 = crypto.createHash('md5');
+  let password = md5.update(req.body.password).digest('hex');
+  return password;
 }
