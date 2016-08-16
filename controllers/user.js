@@ -63,6 +63,9 @@ exports.login = function (req, res, next) {
 
   user.login(userObj)
   .then(function (ret) {
+    if (!ret) {
+      return res.api('用户名或密码错误');
+    }
     req.session.user = ret;
     return res.api('登录成功');
   })
@@ -72,6 +75,7 @@ exports.login = function (req, res, next) {
 /**
  * 用户登出 - GET
  * @param {Object} req.query
+ * @param {String} req.query.name
  */
 exports.logout = function (req, res, next) {
   req.session.destroy();
@@ -206,7 +210,8 @@ exports.deleteGroup = function (req, res, next) {
 exports.getInfo = function (req, res, next) {
   return user.getInfo(req.query.name)
   .then(function (result) {
-    if (req.query.name != req.session.name) {
+    console.log(result);
+    if (req.query.name != req.session.user.name) {
       return user.getRemark(req.session.name, req.query.name)
       .then(function (remark) {
         result.remark = remark;
