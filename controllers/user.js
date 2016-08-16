@@ -210,9 +210,8 @@ exports.deleteGroup = function (req, res, next) {
 exports.getInfo = function (req, res, next) {
   return user.getInfo(req.query.name)
   .then(function (result) {
-    console.log(result);
-    if (req.query.name != req.session.user.name) {
-      return user.getRemark(req.session.name, req.query.name)
+    if (req.query.name !== req.session.user.name) {
+      return user.getRemark(req.session.user.name, req.query.name)
       .then(function (remark) {
         result.remark = remark;
         return result;

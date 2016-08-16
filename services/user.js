@@ -385,7 +385,7 @@ function deleteGroup(creator, group) {
  */
 function getInfo(name) {
   return db.User.findOne({where: {name: name}})
-  .then(ret => ret)
+  .then(ret => ret.dataValues)
   .catch(err => err);
 }
 
@@ -394,7 +394,7 @@ function getInfo(name) {
  */
 function getRemark(fans, follow) {
   return db.Relationship.findOne({where: {fans: fans, follow: follow}})
-  .then(ret => ret.remark)
+  .then(ret => ret.dataValues.remark)
   .catch(err => err);
 }
 
