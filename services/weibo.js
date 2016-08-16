@@ -3,13 +3,14 @@ const Promise = require('bluebird');
 
 const db = require('../models');
 
+// console.log(db);
 
 module.exports = new class {
     /**
      * 获取微博的详细信息
      */
     getWeiboDetail(wbId, options = {}) {
-        return db.Weibo.findById(wbId)
+        return db.models.Weibo.findById(wbId)
             .tap(wbObj => {
                 if (options.needUserDetail) {
                     // TODO: 调用获取用户详情接口获得用户详情
@@ -28,7 +29,7 @@ module.exports = new class {
      * 获取微博最基本的信息，包括 id, content, author
      */
     static getWeiboBaseInfo(wbId) {
-        return db.Weibo.findById(wbId).then(wbDetail => ({
+        return db.models.Weibo.findById(wbId).then(wbDetail => ({
             id: wbDetail.id,
             author: wbDetail.author,
             content: wbDetail.content
@@ -38,7 +39,7 @@ module.exports = new class {
     /**
      * 发表或转发微博
      */
-    addWeibo(wbInfo, options = {commentSync = false, t = undefined}) {
+    addWeibo(wbInfo, options = {commentSync, t}) {
         let keyValues = {
             content: wbInfo.content,
             author: wbInfo.author,
@@ -47,10 +48,10 @@ module.exports = new class {
             from: wbInfo.from,
             creatTime: Date.now()
         };
-        return db.sequelize.transaction(t => {
-            return db.Weibo.create(keyValues, {
+        return db.transaction(t => {
+            return db.models.Weibo.create(keyValues, {
                 raw: true,
-                type: db.sequelize.QueryTypes.RAW,
+                type: db.QueryTypes.RAW,
                 transaction: options.t || t
             }).tap(() => {
                 // TODO: 更新用户微博数统计
@@ -71,8 +72,8 @@ module.exports = new class {
      * 删除微博
      */
     deleteWeibo(wbId, user) {
-        return db.sequelize.transaction(t => {
-            return db.Weibo.update({ deleteTime: Date.now() }, {
+        return db.transaction(t => {
+            return db.models.Weibo.update({ deleteTime: Date.now() }, {
                 where: {
                     id: wbId,
                     author: user,
@@ -91,7 +92,7 @@ module.exports = new class {
     /**
      * 添加评论
      */
-    addComment(cmInfo, options = {forwardSync = false, t = undefined}) {
+    addComment(cmInfo, options = {forwardSync, t}) {
         let keyValues = {
             weiboId: cmInfo.weiboId,
             content: cmInfo.content,
@@ -100,11 +101,11 @@ module.exports = new class {
             createTime: Date.now()
         };
 
-        return db.sequelize.transaction(t => {
+        return db.transaction(t => {
             let forwardContent = '';
-            return db.Comment.create(keyValues, {
+            return db.models.Comment.create(keyValues, {
                 raw: true,
-                type: db.sequelize.QueryTypes.RAW,
+                type: db.QueryTypes.RAW,
                 transaction: options.t || t
             }).tap(() => {
                 if (options.forwardSync) {
@@ -138,7 +139,7 @@ module.exports = new class {
      * 获取单条评论详情
      */
     static getCommentDetail(cmId) {
-        return db.Comment.findById(cmId);
+        return db.models.Comment.findById(cmId);
     }
 
     /**
@@ -147,7 +148,7 @@ module.exports = new class {
     getCommentList(wbId, options) {
         let finalAns = {};
 
-        return db.Comment.findAll({
+        return db.models.Comment.findAll({
             where: {
                 weiboId: wbId,
                 deleteTime: 0
@@ -176,8 +177,8 @@ module.exports = new class {
      * 给微博/评论点赞
      */
     addFavor(table, id, user) {
-        return db.sequelize.transaction(t =>
-            db[table + 'Favor'].upsert({
+        return db.transaction(t =>
+            db.models[table + 'Favor'].upsert({
                 [table.toLowerCase() + 'Id']: id, 
                 userName: user
             }, { transaction: t }).then(created => {
@@ -197,8 +198,8 @@ module.exports = new class {
      * 给微博/评论消赞
      */
     deleteFavor(table, id, user) {
-        return db.sequelize.transaction(t =>
-            db[table + 'Favor'].destroy({
+        return db.transaction(t =>
+            db.models[table + 'Favor'].destroy({
                 where: {
                     [table.toLowerCase() + 'Id']: id, 
                     userName: user
@@ -226,9 +227,9 @@ module.exports = new class {
             'UPDATE ' + table + ' ' +
             'SET favorCount = favorCount ' + operation + ' ' +
             'WHERE id = ? ';
-        return db.sequelize.query(sqlStr, {
+        return db.query(sqlStr, {
             replacements: [id],
-            type: db.sequelize.QueryTypes.RAW,
+            type: db.QueryTypes.RAW,
             raw: true,
             transaction: options.t
         }).get(0);
