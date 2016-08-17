@@ -3,8 +3,6 @@ const Promise = require('bluebird');
 
 const db = require('../models');
 
-// console.log(db);
-
 module.exports = new class {
     /**
      * 获取微博的详细信息
@@ -16,11 +14,13 @@ module.exports = new class {
                     // TODO: 调用获取用户详情接口获得用户详情
                 }
             }).tap(wbObj => {
-                if (wbObj.originalId && options.needOriginalWeiboDetail) {
-                    this.getWeiboBaseInfo(wbObj.originalId).then(wbBaseInfo => {
-                        wbObj.originalWeibo = wbBaseInfo;
-                        delete wbObj.originalId;
-                    });
+                if (wbObj) {
+                    if (wbObj.originalId && options.needOriginalWeiboDetail) {
+                        this.getWeiboBaseInfo(wbObj.originalId).then(wbBaseInfo => {
+                            wbObj.originalWeibo = wbBaseInfo;
+                            delete wbObj.originalId;
+                        });
+                    }
                 }
             });
     }
@@ -56,7 +56,7 @@ module.exports = new class {
             }).tap(() => {
                 // TODO: 更新用户微博数统计
             }).tap(() => {
-                if (options.commentSync) {
+                if (options.commentSync && keyValues.forwardId) {
                     this.addComment({
                         weiboId: keyValues.forwardId,
                         content: keyValues.content,

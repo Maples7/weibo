@@ -41,7 +41,7 @@ function login(userObj) {
     where.email = userObj.email;
   }
 
-  return db.User.findOne(where);
+  return db.User.findOne(where).get('dataValues');
 }
 
 /**

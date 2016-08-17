@@ -1,0 +1,1 @@
+require('./weibo.test.js');

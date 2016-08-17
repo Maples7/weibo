@@ -43,7 +43,7 @@ exports.addWeibo = (req, res, next) => {
 
     wbInfo.forwardId = req.body.forwardId;
     wbInfo.originalId = req.body.originalId;
-    wbInfo.author = req.session.name;
+    wbInfo.author = req.session.user.name;
 
     if (!wbInfo.forwardId !== !wbInfo.originalId) {     // XOR
         return res.api(...status.xorParams);
