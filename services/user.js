@@ -3,13 +3,30 @@
  */
 const _ = require('lodash');
 const Promise = require('bluebird');
+const nodemailer = require('nodemailer');
+const sendmailOpt = {
+  transport: "SMTP",
+  host: "smtp.163.com",
+  port: 465,
+  auth: {
+    "user": "bobmingxie@163.com",
+    "password": "ourweibo2016"
+  },
+  subject: "微博邮箱验证",
+  nick: "微博<bobmingxie@163.com>",
+  secureConnection: true
+}
+const transporter = nodemailer.createTransport(sendmailOpt);
 
 const db = require('../models').models;
 const encode = require('../tools/crypt').encodePassword;
 
+exports.sendMail = sendMail;
+exports.saveCode = saveCode;
 exports.login = login;
 exports.register = register;
 exports.modifyInfo = modifyInfo;
+exports.modifyEmail = modifyEmail;
 exports.modifyPassword = modifyPassword;
 exports.follow = follow;
 exports.unfollow = unfollow;
@@ -28,6 +45,38 @@ exports.getGroupDetail = getGroupDetail;
 exports.getGroupMember = getGroupMember;
 
 /**
+ * sendMail 发送邮件
+ */
+function sendMail(username, useremail, code, callback) {
+  let content = 'Hi, ' + username + ': \n\t' +
+  '欢迎使用微博服务，您的验证码是：\n\t' +
+  code + '\n\t' + '请尽快完成邮箱验证\n\t' +
+  '[微博团队]';
+  let mailContent = {
+    from : sendmailOpt.nick,
+    to : useremail,
+    subject : sendmailOpt.subject,
+    text : content
+  };
+  transporter.sendMail(mailContent, function (err, info) {
+    if (err) {
+      console.log(err);
+      return callback('邮件发送失败');
+    }
+    else {
+      return callback();
+    }
+  });
+}
+
+/**
+ * saveCode 保存验证码
+ */
+function saveCode(useremail, code) {
+  return db.Code.create({email: useremail, code: code, createTime: Date.now()});
+}
+
+/**
  * login 登录
  * @param userObj
  */
@@ -41,7 +90,7 @@ function login(userObj) {
     where.email = userObj.email;
   }
 
-  return db.User.findOne(where).get('dataValues');
+  return db.User.findOne(where);
 }
 
 /**
@@ -82,9 +131,9 @@ function register(userObj) {
       sex: userObj.sex,
       createTime: Date.now() 
     });
-  })
-  .then(ret => db.Group.create({creator: userObj.name, name: '未分组'})
-  .then(ret => db.Group.create({creator: userObj.name, name: '黑名单'})));
+  });
+  // .then(ret => db.Group.create({creator: userObj.name, name: '未分组'})
+  // .then(ret => db.Group.create({creator: userObj.name, name: '黑名单'})));
 }
 
 /**
@@ -125,6 +174,22 @@ function modifyInfo(name, userObj) {
       }
       return '信息修改成功';
     });
+  });
+}
+
+/**
+ * modifyEmail 验证个人邮箱
+ */
+function modifyEmail(name, email, code) {
+  return db.Code.findOne({where: {email: email, code: code}})
+  .then(function (ret) {
+    if (ret) {
+      return db.User.findOne({where: {name: name}})
+      .then(r => r.updateAttributes({emailConfirm: true}));
+    }
+    else {
+      throw new Error('验证码错误');
+    }
   });
 }
 
@@ -240,7 +305,7 @@ function regroup(info) {
         fans: info.fans,
         follow: info.follow,
         remark: info.remark,
-        group: null
+        group: '未分组'
       });
     }
     return Promise.each(info.group, g => db.Relationship.findOrCreate({
@@ -384,7 +449,9 @@ function deleteGroup(creator, group) {
  * getInfo 获取个人信息
  */
 function getInfo(name) {
-  return db.User.findOne({where: {name: name}}).get('dataValues');
+  return db.User.findOne({where: {name: name}})
+  .then(ret => ret.dataValues)
+  .catch(err => err);
 }
 
 /**
@@ -392,7 +459,8 @@ function getInfo(name) {
  */
 function getRemark(fans, follow) {
   return db.Relationship.findOne({where: {fans: fans, follow: follow}})
-  .then(ret => ret.dataValues.remark);
+  .then(ret => ret.dataValues.remark)
+  .catch(err => err);
 }
 
 /**
@@ -400,7 +468,8 @@ function getRemark(fans, follow) {
  */
 function getFollow(name) {
   return db.Relationship.findAll({where: {fans: name}})
-  .then(ret => _.uniqBy(ret, 'follow'));
+  .then(ret => _.uniqBy(ret, 'follow'))
+  .catch(err => err);
 }
 
 /**
@@ -408,26 +477,33 @@ function getFollow(name) {
  */
 function getFans(name) {
   return db.Relationship.findAll({where: {follow: name}})
-  .then(ret => _.uniqBy(ret, 'fans'));
+  .then(ret => _.uniqBy(ret, 'fans'))
+  .catch(err => err);
 }
 
 /**
  * getGroups 获取分组列表
  */
 function getGroups(name) {
-  return db.Group.findAll({where: {creator: name}});
+  return db.Group.findAll({where: {creator: name}})
+  .then(ret => ret.push('未分组', '黑名单'))
+  .catch(err => err);
 }
 
 /**
  * getGroupDetail 获取分组详情
  */
 function getGroupDetail(name, group) {
-  return db.Group.findOne({where: {creator: name, name: group}});
+  return db.Group.findOne({where: {creator: name, name: group}})
+  .then(ret => ret)
+  .catch(err => err);
 }
 
 /**
  * getGroupMember 获取分组成员
  */
 function getGroupMember(name, group) {
-  return db.Relationship.findAll({where: {fans: name, group: group}});
+  return db.Relationship.findAll({where: {fans: name, group: group}})
+  .then(ret => ret)
+  .catch(err => err);
 }

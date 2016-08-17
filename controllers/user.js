@@ -7,6 +7,7 @@ const _ = require('lodash');
 const user = require('../services/user');
 const status = require('../enums/resStatus');
 const verifyEmail = require('../helpers/verifyEmail');
+const aCode = require('../tools/code');
 
 /**
  * 用户注册 - POST
@@ -92,12 +93,45 @@ exports.logout = function (req, res, next) {
  */
 exports.modifyInfo = function (req, res, next) {
   let name = req.session.user.name;
-  return user.modify(name, req.body)
+  return user.modifyInfo(name, req.body)
   .then(function (ret) {
-    // 若修改了影响了登录的email/name，需重置session
+    // 若修改了影响了登录的name，需重置session
     if (ret != '信息修改成功') {
       req.session.user = ret;
     }
+    return res.api('信息修改成功');
+  })
+  .catch(err => res.api(err));
+}
+
+/**
+ * 发起发送邮箱请求 - GET
+ */
+exports.sendMail = function (req, res, next) {
+  let name = req.query.name;
+  let email = req.query.email;
+  let code = aCode();
+  return Promise.promisify(user.sendMail)(name, email, code)
+  .then(() => user.saveCode(email, code))
+  .then(() => res.api('邮件发送成功'))
+  .catch(err => res.api(err));
+}
+
+/**
+ * 用户验证邮箱 - PUT
+ * @param {Object} req.body
+ * @param {String} req.body.name
+ * @param {String} req.body.email
+ * @param {String} req.body.code
+ */
+exports.modifyEmail = function (req, res, next) {
+  let name = req.session.user.name;
+  let email = req.body.email;
+  let code = req.body.code;
+  return user.modifyEmail(name, email, code)
+  .then(function (ret) {
+    // 修改了影响了登录的email，需重置session
+    req.session.user = ret;
     return res.api('信息修改成功');
   })
   .catch(err => res.api(err));
