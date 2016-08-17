@@ -2,11 +2,11 @@
     "mysql": {
         "host": "127.0.0.1",
         "user": "root",
-        "password": "root",
+        "password": "",
         "port": 3306,
         "database": "weibo_server",
         "timeZone": "+08:00",
-        "forceSync": true
+        "forceSync": false
     },
     "session": {
         "name": "connect.sessionId",
