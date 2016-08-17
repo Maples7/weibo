@@ -384,9 +384,7 @@ function deleteGroup(creator, group) {
  * getInfo 获取个人信息
  */
 function getInfo(name) {
-  return db.User.findOne({where: {name: name}})
-  .then(ret => ret.dataValues)
-  .catch(err => err);
+  return db.User.findOne({where: {name: name}}).get('dataValues');
 }
 
 /**
@@ -394,8 +392,7 @@ function getInfo(name) {
  */
 function getRemark(fans, follow) {
   return db.Relationship.findOne({where: {fans: fans, follow: follow}})
-  .then(ret => ret.dataValues.remark)
-  .catch(err => err);
+  .then(ret => ret.dataValues.remark);
 }
 
 /**
@@ -403,8 +400,7 @@ function getRemark(fans, follow) {
  */
 function getFollow(name) {
   return db.Relationship.findAll({where: {fans: name}})
-  .then(ret => _.uniqBy(ret, 'follow'))
-  .catch(err => err);
+  .then(ret => _.uniqBy(ret, 'follow'));
 }
 
 /**
@@ -412,33 +408,26 @@ function getFollow(name) {
  */
 function getFans(name) {
   return db.Relationship.findAll({where: {follow: name}})
-  .then(ret => _.uniqBy(ret, 'fans'))
-  .catch(err => err);
+  .then(ret => _.uniqBy(ret, 'fans'));
 }
 
 /**
  * getGroups 获取分组列表
  */
 function getGroups(name) {
-  return db.Group.findAll({where: {creator: name}})
-  .then(ret => ret)
-  .catch(err => err);
+  return db.Group.findAll({where: {creator: name}});
 }
 
 /**
  * getGroupDetail 获取分组详情
  */
 function getGroupDetail(name, group) {
-  return db.Group.findOne({where: {creator: name, name: group}})
-  .then(ret => ret)
-  .catch(err => err);
+  return db.Group.findOne({where: {creator: name, name: group}});
 }
 
 /**
  * getGroupMember 获取分组成员
  */
 function getGroupMember(name, group) {
-  return db.Relationship.findAll({where: {fans: name, group: group}})
-  .then(ret => ret)
-  .catch(err => err);
+  return db.Relationship.findAll({where: {fans: name, group: group}});
 }
