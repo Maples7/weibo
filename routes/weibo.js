@@ -11,6 +11,8 @@ const router = module.exports = express.Router();
 
 // router.param('wbId', check.checkWeiboStatus);
 
+// 单条微博相关
+
 router.get('/weibos/:wbId', weibo.getWeiboDetail);
 router.post('/weibos', check.checkLogin, weibo.addWeibo);
 router.delete('/weibos/:wbId', check.checkLogin, weibo.deleteWeibo);
@@ -22,3 +24,7 @@ router.delete('/comments/:cmId/favor', check.checkLogin, weibo.deleteCommentFavo
 
 router.post('/weibos/:wbId/favor', check.checkLogin, weibo.addWeiboFavor);
 router.delete('/weibos/:wbId/favor', check.checkLogin, weibo.deleteWeiboFavor);
+
+// 微博列表相关
+
+// router.get('/weibos', weiboList.getWeiboList);

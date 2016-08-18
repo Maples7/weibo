@@ -13,8 +13,10 @@ const status = require('../enums/resStatus');
  */
 exports.getWeiboDetail = (req, res, next) => {
     let wbId = req.params.wbId;
+    let name = req.session.user.name;
 
     return weibo.getWeiboDetail(wbId, {
+        name: name,
         needUserDetail: req.query.needUserDetail,
         needOriginalWeiboDetail: req.query.needOriginalWeiboDetail
     }).then(data => res.api(data)).catch(err => res.api_error(err.message));

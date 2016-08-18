@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 
+const userService = require('./user');
 const db = require('../models');
 
 module.exports = new class {
@@ -11,7 +12,8 @@ module.exports = new class {
         return db.models.Weibo.findById(wbId)
             .tap(wbObj => {
                 if (options.needUserDetail) {
-                    // TODO: 调用获取用户详情接口获得用户详情
+                    return userService.getInfo(options.name)
+                        .then(userInfo => wbObj.author = userInfo);
                 }
             }).tap(wbObj => {
                 if (wbObj) {
@@ -55,9 +57,14 @@ module.exports = new class {
                 transaction: options.t || t
             }).tap(() => {
                 // TODO: 更新用户微博数统计
+                return userService.modifyWeiboCount({
+                    name: keyValues.author,
+                    action: 'add',
+                    transaction: options.t || t
+                });
             }).tap(() => {
                 if (options.commentSync && keyValues.forwardId) {
-                    this.addComment({
+                    return this.addComment({
                         weiboId: keyValues.forwardId,
                         content: keyValues.content,
                         author: keyValues.author,
@@ -83,6 +90,11 @@ module.exports = new class {
                 raw: true
             }).tap(() => {
                 // TODO: 更新用户微博数统计
+                return userService.modifyWeiboCount({
+                    name: user,
+                    action: 'del',
+                    transaction: t
+                });
             }).spread(affectedCount => 
                 affectedCount ? '删除成功' : '删除失败'
             );
