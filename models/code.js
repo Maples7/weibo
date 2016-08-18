@@ -1,3 +1,6 @@
+/**
+ * Created by Ming Tse on 2016/8/17
+ */
 module.exports = (sequelize, DataTypes) => sequelize.define('Code', {
   email: {
     allowNull: false,
@@ -12,6 +15,7 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Code', {
   createTime: {
     allowNull: false,
     type: DataTypes.BIGINT.UNSIGNED,
+    defaultValue: Date.now(),
     comment: '创建时间'
   }
 }, {
