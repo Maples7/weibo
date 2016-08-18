@@ -28,7 +28,7 @@ module.exports = new class {
     /**
      * 获取微博最基本的信息，包括 id, content, author
      */
-    static getWeiboBaseInfo(wbId) {
+    getWeiboBaseInfo(wbId) {
         return db.models.Weibo.findById(wbId).then(wbDetail => ({
             id: wbDetail.id,
             author: wbDetail.author,
@@ -83,8 +83,8 @@ module.exports = new class {
                 raw: true
             }).tap(() => {
                 // TODO: 更新用户微博数统计
-            }).spread(affectedCount =>
-                affectedCount ? '删除成功' : new Error('删除失败')
+            }).spread(affectedCount => 
+                affectedCount ? '删除成功' : '删除失败'
             );
         });
     }
@@ -138,7 +138,7 @@ module.exports = new class {
     /**
      * 获取单条评论详情
      */
-    static getCommentDetail(cmId) {
+    getCommentDetail(cmId) {
         return db.models.Comment.findById(cmId);
     }
 
@@ -154,21 +154,21 @@ module.exports = new class {
                 deleteTime: 0
             },
             attributes: ['id'],
-            order: [['createTime', 'DESC']]
-        }).get('id').map(this.getCommentDetail).then(cmList => {
+            order: [['createTime', 'DESC']],
+            raw: true
+        }).map(cmObj => this.getCommentDetail(cmObj.id)).then(cmList => {
             if (options.offset === 0) {
                 let totalFavorCount = _.sumBy(cmList, o => o.favorCount);
                 let totalCommentCount = cmList.length;
                 let criticalValue = totalFavorCount / totalCommentCount;
                 finalAns.hotComments = 
-                    cmList.filter(o => o.favorCount > criticalValue).slice(0, options.limit);
-                finalAns.ordinaryComments = 
-                    cmList.filter(o => o.favorCount <= criticalValue)
-                        .slice(0, options.limit - finalAns.hotComments.length);
-            } else {
-                finalAns.ordinaryComments =
-                    cmList.slice(options.offset, options.offset + options.limit);
+                    cmList
+                        .filter(o => o.favorCount > criticalValue)
+                        .slice(options.hotOffset, options.hotOffset + options.limit);
             }
+            finalAns.ordinaryComments =
+                cmList.slice(options.offset, options.offset + options.limit);
+            
             return finalAns;
         });     
     }
@@ -221,7 +221,7 @@ module.exports = new class {
     /**
      * 更新微博/评论点赞数
      */
-    static updateFavorCount(table, id, operation, options) {
+    updateFavorCount(table, id, operation, options) {
         table = table.toLowerCase() + 's';
         let sqlStr = '' +
             'UPDATE ' + table + ' ' +

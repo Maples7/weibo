@@ -21,4 +21,4 @@ router.post('/comments/:cmId/favor', check.checkLogin, weibo.addCommentFavor);
 router.delete('/comments/:cmId/favor', check.checkLogin, weibo.deleteCommentFavor);
 
 router.post('/weibos/:wbId/favor', check.checkLogin, weibo.addWeiboFavor);
-router.delete('/weibo/:wbId/favor', check.checkLogin, weibo.deleteWeiboFavor);
+router.delete('/weibos/:wbId/favor', check.checkLogin, weibo.deleteWeiboFavor);

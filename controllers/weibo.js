@@ -17,7 +17,7 @@ exports.getWeiboDetail = (req, res, next) => {
     return weibo.getWeiboDetail(wbId, {
         needUserDetail: req.query.needUserDetail,
         needOriginalWeiboDetail: req.query.needOriginalWeiboDetail
-    }).then(data => res.api(data)).catch(err => res.api_error(err));
+    }).then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
 /**
@@ -51,7 +51,7 @@ exports.addWeibo = (req, res, next) => {
 
     return weibo.addWeibo(wbInfo, {
         commentSync: req.body.commentSync
-    }).then(data => res.api(data)).catch(err => res.api_error(err));
+    }).then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
 /**
@@ -62,16 +62,15 @@ exports.addWeibo = (req, res, next) => {
  */
 exports.deleteWeibo = (req, res, next) => {
     let wbId = req.params.wbId;
-    let user = req.session.name;
+    let user = req.session.user.name;
 
     return weibo.deleteWeibo(wbId, user)
-        .then(data => res.api(data)).catch(err => res.api_error(err));
+        .then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
 /**
  * 发表评论 - POST
  * @param {Object}      req
- * @param {Number}      req.body.weiboId        - 被评论的微博Id
  * @param {String}      req.body.content        - 评论内容
  * @param {String}      req.body.from           - “来自于”，客户端信息
  * @param {Number}      [req.body.replyId]      - 被回复评论的Id，不传值表明为简单评论
@@ -81,7 +80,7 @@ exports.deleteWeibo = (req, res, next) => {
  */
 exports.addComment = (req, res, next) => {
     let cmInfo = {
-        weiboId: req.body.weiboId,
+        weiboId: req.params.wbId,
         content: req.body.content,
         from: req.body.from 
     };
@@ -91,18 +90,23 @@ exports.addComment = (req, res, next) => {
     }
 
     cmInfo.replyId = req.body.replyId;
-    cmInfo.author = req.session.name;
+    cmInfo.author = req.session.user.name;
 
     return weibo.addComment(cmInfo, {
        forwardSync: req.body.forwardSync
-    }).then(data => res.api(data)).catch(err => res.api_error(err));
+    }).then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
 /**
  * 获取某一微博的评论列表 - GET
+ * 
+ * 注意：只有当 req.query.offset 为 0 时才会获取热门评论
+ * 
  * @param {Object}      req
- * @param {Number}      [req.query.limit]   - 单次请求条数，默认为 20
- * @param {Number}      [req.query.offset]  - 偏移量，默认为 0
+ * @param {Number}      [req.query.limit]       - 对于所有评论的单次请求条数，默认为 20
+ * @param {Number}      [req.query.offset]      - 对于所有评论的偏移量，默认为 0
+ * @param {Number}      [req.query.hotLimit]    - 对于热门评论的单次请求条数，默认为 5
+ * @param {Number}      [req.query.hotOffset]   - 对于热门评论的偏移量，默认为 0
  * @param {Object}      res
  * @param {Function}    next
  */
@@ -110,11 +114,13 @@ exports.getCommentList = (req, res, next) => {
     let wbId = req.params.wbId;
     let options = {
         limit: req.query.limit || 20,
-        offset: req.query.offset || 0
+        offset: req.query.offset || 0,
+        hotLimit: req.query.hotLimit || 5,
+        hotOffset: req.query.hotOffset || 0
     };
 
     return weibo.getCommentList(wbId, options)
-        .then(data => res.api(data)).catch(err => res.api_error(err));
+        .then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
 /**
@@ -125,10 +131,10 @@ exports.getCommentList = (req, res, next) => {
  */
 exports.addWeiboFavor = (req, res, next) => {
     let wbId = req.params.wbId;
-    let user = req.session.name;
+    let user = req.session.user.name;
 
     return weibo.addFavor('Weibo', wbId, user)
-        .then(data => res.api(data)).catch(err => res.api_error(err));
+        .then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
 /**
@@ -139,10 +145,10 @@ exports.addWeiboFavor = (req, res, next) => {
  */
 exports.deleteWeiboFavor = (req, res, next) => {
     let wbId = req.params.wbId;
-    let user = req.session.name;
+    let user = req.session.user.name;
 
     return weibo.deleteFavor('Weibo', wbId, user)
-        .then(data => res.api(data)).catch(err => res.api_error(err));
+        .then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
 /**
@@ -153,10 +159,10 @@ exports.deleteWeiboFavor = (req, res, next) => {
  */
 exports.addCommentFavor = (req, res, next) => {
     let cmId = req.params.cmId;
-    let user = req.session.name;
+    let user = req.session.user.name;
 
     return weibo.addFavor('Comment', cmId, user)
-        .then(data => res.api(data)).catch(err => res.api_error(err));
+        .then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
 /**
@@ -167,8 +173,8 @@ exports.addCommentFavor = (req, res, next) => {
  */
 exports.deleteCommentFavor = (req, res, next) => {
     let cmId = req.params.cmId;
-    let user = req.session.name;
+    let user = req.session.user.name;
 
     return weibo.deleteFavor('Comment', cmId, user)
-        .then(data => res.api(data)).catch(err => res.api_error(err));
+        .then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
