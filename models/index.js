@@ -24,7 +24,8 @@ sequelize.authenticate().then(msg => {
     './comment',
     './weibo_favor',
     './relationship',
-    './group'
+    './group',
+    './code'
 ].map(model => sequelize.import(model));
 
 module.exports = sequelize;

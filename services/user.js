@@ -1,5 +1,5 @@
 /**
- * Created by Ming Tae on 2016/8/11
+ * Created by Ming Tse on 2016/8/11
  */
 const _ = require('lodash');
 const Promise = require('bluebird');
@@ -27,6 +27,7 @@ exports.login = login;
 exports.register = register;
 exports.modifyInfo = modifyInfo;
 exports.modifyEmail = modifyEmail;
+exports.bindEmail = bindEmail;
 exports.modifyPassword = modifyPassword;
 exports.follow = follow;
 exports.unfollow = unfollow;
@@ -73,7 +74,7 @@ function sendMail(username, useremail, code, callback) {
  * saveCode 保存验证码
  */
 function saveCode(useremail, code) {
-  return db.Code.create({email: useremail, code: code, createTime: Date.now()});
+  return db.Code.create({email: useremail, code: code});
 }
 
 /**
@@ -85,12 +86,18 @@ function login(userObj) {
   let where = {password: password};
   if (userObj.name) {
     where.name = userObj.name;
+    return db.User.findOne({where: where});
   }
   else {
     where.email = userObj.email;
+    return db.User.findOne({where: where})
+    .then(function (ret) {
+      if (!ret.dataValues.emailConfirm) {
+        throw new Error('邮箱未绑定，请用用户名登录');
+      }
+      return ret;
+    });
   }
-
-  return db.User.findOne(where);
 }
 
 /**
@@ -142,50 +149,55 @@ function register(userObj) {
 function modifyInfo(name, userObj) {
   return db.User.findOne({where: {name: name}})
   .then(function (ret) {
-    let email = ret.email;
     return ret.updateAttributes(userObj)
     .then(function (r) {
       // 若用户名更改，需同时修改分组表、关注表
-      if (userObj.name != name) {
+      if (userObj.name !== name) {
         return db.Group.findAll({where : {creator: name}})
         .then(results => Promise.each(results, function(result) {
-          result.updateAttributes({creator: userObj.name});
+          return result.updateAttributes({creator: userObj.name});
         }))
         .then(() => db.Relationship.findAll({where: {fans: name}}))
         .then(results => Promise.each(results, function(result) {
-          result.updateAttributes({fans: userObj.name});
+          return result.updateAttributes({fans: userObj.name});
         }))
         .then(() => db.Relationship.findAll({where: {follow: name}}))
         .then(results => Promise.each(results, function(result) {
-          result.updateAttributes({follow: userObj.name});
+          return result.updateAttributes({follow: userObj.name});
         }))
-        .then(function () {
-          // 若邮箱更改，置假邮箱验证属性
-          if (userObj.email != email) {
-            return ret.updateAttributes({emailConfirm: false})
-            .then(() => ret);
-          }
-          return ret;
-        });
+        .then(() => userObj.name);
       }
-      else if (userObj.email != email) {
-        return ret.updateAttributes({emailConfirm: false})
-        .then(() => ret);
-      }
-      return '信息修改成功';
+      return null;
     });
   });
 }
 
 /**
- * modifyEmail 验证个人邮箱
+ * modifyEmail 修改个人邮箱
  */
-function modifyEmail(name, email, code) {
-  return db.Code.findOne({where: {email: email, code: code}})
+function modifyEmail(name, email) {
+  return db.User.findOne({where: {name: name}})
+  .then(function (ret) {
+    if (ret.emailConfirm) {
+      throw new Error('邮箱已绑定，请解绑后修改');
+    }
+    return ret.updateAttributes({email: email, emailConfirm: false});
+  });
+}
+
+/**
+ * bindEmail 绑定/解绑邮箱
+ */
+function bindEmail(name, email, code, flag) {
+  return db.Code.findOne({where: {name: name, code: code}})
   .then(function (ret) {
     if (ret) {
-      return db.User.findOne({where: {name: name}})
-      .then(r => r.updateAttributes({emailConfirm: true}));
+      if (Date.now() - ret.createTime > 3600 * 5) {
+        return ret.destroy().then(() => {throw new Error('验证码已过期')});
+      }
+      return db.User.findOne({where: {name: name, email: email}})
+      .then(r => r.updateAttributes({emailConfirm: flag}))
+      .then(() => ret.destroy());
     }
     else {
       throw new Error('验证码错误');
@@ -196,13 +208,21 @@ function modifyEmail(name, email, code) {
 /**
  * modifyPassword 修改个人密码
  */
-function modifyPassword(name, password) {
+function modifyPassword(name, password, code) {
   let pass = encode(password);
-
-  return db.User.findOne({where: {name: name}})
-  .then(function (r) {
-    r.updateAttributes({password: pass});
-    return pass;
+  return db.Code.findOne({where: {name: name, code: code}})
+  .then(function (ret) {
+    if (ret) {
+      if (Date.now() - ret.createTime > 3600 * 5) {
+        return ret.destroy().then(() => {throw new Error('验证码已过期')});
+      }
+      return db.User.findOne({where: {name: name}})
+      .then(r => r.updateAttributes({password: pass}))
+      .then(() => pass);
+    }
+    else {
+      throw new Error('验证码错误');
+    }
   });
 }
 

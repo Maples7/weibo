@@ -1,5 +1,5 @@
 /**
- * Created by Ming Tae on 2016/8/11
+ * Created by Ming Tse on 2016/8/11
  */
 var crypto = require('crypto');
 

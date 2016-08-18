@@ -1,5 +1,5 @@
 /**
- * Created by Ming Tae on 2016/8/11
+ * Created by Ming Tse on 2016/8/11
  */
 
 const _ = require('lodash');
@@ -41,36 +41,38 @@ exports.register = function (req, res, next) {
 
   user.register(userObj)
   .then(ret=> res.api('注册成功'))
-  .catch(err => res.api_error(err));
+  .catch(err => res.api_error(err.message));
 };
 
 /**
  * 用户登录 - POST
  * @param {Object} req.body
- * @param {String} req.body.name
- * @param {String} req.body.email
+ * @param {String} req.body.account - 用户名或邮箱
  * @param {String} req.body.password
  */
 exports.login = function (req, res, next) {
-  if (!req.body.password || !(req.body.name || req.body.email)) {
+  let account = req.body.account;
+  if (!req.body.password || !account) {
     return res.api(...status.lackParams);
   }
 
-  let userObj = {
-    email: req.body.email,
-    name: req.body.name,
-    password: req.body.password
-  };
+  let userObj = {password: req.body.password};
+  if (verifyEmail(account)) {
+    userObj.email = account;
+  }
+  else {
+    userObj.name = account;
+  }
 
   user.login(userObj)
   .then(function (ret) {
     if (!ret) {
-      return res.api('用户名或密码错误');
+      return res.api('账号或密码错误');
     }
-    req.session.user = ret;
+    req.session.user = ret.dataValues;
     return res.api('登录成功');
   })
-  .catch(err => res.api_error(err));
+  .catch(err => res.api_error(err.message));
 };
 
 /**
@@ -88,20 +90,20 @@ exports.logout = function (req, res, next) {
  * 用户修改信息 - PUT
  * @param {Object} req.body
  * @param {String} req.body.name
- * @param {String} req.body.email
  * @param {String} 
  */
 exports.modifyInfo = function (req, res, next) {
+  // 获取当前用户的用户名作旧名
   let name = req.session.user.name;
   return user.modifyInfo(name, req.body)
-  .then(function (ret) {
+  .then(function (newname) {
     // 若修改了影响了登录的name，需重置session
-    if (ret != '信息修改成功') {
-      req.session.user = ret;
+    if (newname) {
+      req.session.user.name = newname;
     }
     return res.api('信息修改成功');
   })
-  .catch(err => res.api(err));
+  .catch(err => res.api_error(err.message));
 }
 
 /**
@@ -114,44 +116,67 @@ exports.sendMail = function (req, res, next) {
   return Promise.promisify(user.sendMail)(name, email, code)
   .then(() => user.saveCode(email, code))
   .then(() => res.api('邮件发送成功'))
-  .catch(err => res.api(err));
+  .catch(err => res.api_error(err.message));
 }
 
 /**
  * 用户验证邮箱 - PUT
  * @param {Object} req.body
  * @param {String} req.body.name
- * @param {String} req.body.email
+ * @param {String} req.body.act - 修改/绑定/解绑
+ * @param {String} req.body.email - 修改时为新邮箱，绑定/解绑时为旧邮箱
  * @param {String} req.body.code
  */
 exports.modifyEmail = function (req, res, next) {
+  let act = req.body.act;
+  // 获取当前用户的用户名
   let name = req.session.user.name;
   let email = req.body.email;
-  let code = req.body.code;
-  return user.modifyEmail(name, email, code)
-  .then(function (ret) {
-    // 修改了影响了登录的email，需重置session
-    req.session.user = ret;
-    return res.api('信息修改成功');
-  })
-  .catch(err => res.api(err));
+  let code;
+  switch (act) {
+    case 'modify':
+      return user.modifyEmail(name, email)
+      .then(function (ret) {
+        // 修改了影响了登录的email，需重置session
+        req.session.user.email = ret;
+        return res.api('信息修改成功');
+      })
+      .catch(err => res.api_error(err.message));
+    case 'bind':
+      code = req.body.code;
+      return user.bindEmail(name, email, code, true)
+      .then(ret => res.api('邮箱验证绑定成功'))
+      .catch(err => res.api_error(err.message));
+    case 'unbind':
+      code = req.body.code;
+      return user.unbindEmail(name, email, code, false)
+      .then(ret => res.api('邮箱验证解绑成功'))
+      .catch(err => res.api_error(err.message));
+    default:
+      return res.api(...status.apiNotFound);
+  }
 }
 
 /**
  * 用户修改密码 - PUT
  * @param {Object} req.body
- * @param {String} req.body.password
+ * @param {String} req.body.password  - 新密码
+ * @param {String} req.body.code
  * @param {Object} req.session.user
  * @param {String} req.session.user.name
  */
 exports.modifyPassword = function (req, res, next) {
+  // 获取当前用户的用户名
   let name = req.session.user.name;
-  return user.modifyPassword(name, req.body.password)
+  let password = req.body.password;
+  let code = req.body.code;
+  return user.modifyPassword(name, password, code)
   .then(function (ret) {
+    // 修改完不退出，即时更新其当前密码
     req.session.user.password = ret;
     return res.api('修改密码成功');
   })
-  .catch(err => res.api(err));
+  .catch(err => res.api_error(err.message));
 }
 
 /**
@@ -171,23 +196,23 @@ exports.modifyRelationship = function (req, res, next) {
       }
       return user.follow(req.body)
       .then(ret => res.api('关注成功'))
-      .catch(err => res.api(err));
+      .catch(err => res.api_error(err.message));
     case 'unfollow':
       return user.unfollow(req.body)
       .then(ret => res.api('取消关注成功'))
-      .catch(err => res.api(err));
+      .catch(err => res.api_error(err.message));
     case 'remark':
       return user.remark(req.body)
       .then(ret => res.api('修改备注成功'))
-      .catch(err => res.api(err));
+      .catch(err => res.api_error(err.message));
     case 'regroup':
       return user.regroup(req.body)
       .then(ret => res.api('编辑分组成功'))
-      .catch(err => res.api(err));
+      .catch(err => res.api_error(err.message));
     case 'blcak':
       return user.black(req.body)
       .then(ret => res.api('拉黑成功'))
-      .catch(err => res.api(err));
+      .catch(err => res.api_error(err.message));
     default:
       return res.api(...status.apiNotFound);
   }
@@ -219,7 +244,7 @@ exports.modifyGroup = function (req, res, next) {
   }
   return user.modifyGroup(req.body.old, req.session.user.name, req.body.group)
   .then(ret => res.api('修改分组信息成功'))
-  .catch(err => res.api(err));
+  .catch(err => res.api_error(err.message));
 }
 
 /**
@@ -233,7 +258,7 @@ exports.deleteGroup = function (req, res, next) {
   }
   return user.deleteGroup(req.body.old, req.session.user.name)
   .then(ret => res.api('删除分组成功'))
-  .catch(err => res.api(err));
+  .catch(err => res.api_error(err.message));
 }
 
 /**
@@ -254,7 +279,7 @@ exports.getInfo = function (req, res, next) {
     return result;
   })
   .then(ret => res.api(ret))
-  .catch(err => res.api(err));
+  .catch(err => res.api_error(err.message));
 }
 
 /**
@@ -265,7 +290,7 @@ exports.getInfo = function (req, res, next) {
 exports.getFollow = function (req, res, next) {
   return user.getFollow(req.query.name)
   .then(ret => res.api(ret))
-  .catch(err => res.api(err));
+  .catch(err => res.api_error(err.message));
 }
 
 /**
@@ -276,7 +301,7 @@ exports.getFollow = function (req, res, next) {
 exports.getFans = function (req, res, next) {
   return user.getFans(req.query.name)
   .then(ret => res.api(ret))
-  .catch(err => res.api(err));
+  .catch(err => res.api_error(err.message));
 }
 
 /**
@@ -287,7 +312,7 @@ exports.getFans = function (req, res, next) {
 exports.getGroups = function (req, res, next) {
   return user.getGroups(req.query.name)
   .then(ret => res.api(ret))
-  .catch(err => res.api(err));
+  .catch(err => res.api_error(err.message));
 }
 
 /**
@@ -299,7 +324,7 @@ exports.getGroups = function (req, res, next) {
 exports.getGroupDetail = function (req, res, next) {
   return user.getGroupDetail(req.query.name, req.query.group)
   .then(ret => res.api(ret))
-  .catch(err => res.api(err));
+  .catch(err => res.api_error(err.message));
 }
 
 /**
@@ -311,5 +336,5 @@ exports.getGroupDetail = function (req, res, next) {
 exports.getGroupMember = function (req, res, next) {
   return user.getGroupMember(req.query.name, req.query.group)
   .then(ret => res.api(ret))
-  .catch(err => res.api(err));
+  .catch(err => res.api_error(err.message));
 }
