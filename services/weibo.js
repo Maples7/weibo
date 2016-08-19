@@ -56,7 +56,6 @@ module.exports = new class {
                 type: db.QueryTypes.RAW,
                 transaction: options.t || t
             }).tap(() => {
-                // TODO: 更新用户微博数统计
                 return userService.modifyWeiboCount({
                     name: keyValues.author,
                     action: 'add',
@@ -89,7 +88,6 @@ module.exports = new class {
                 fields: ['deleteTime'],
                 raw: true
             }).tap(() => {
-                // TODO: 更新用户微博数统计
                 return userService.modifyWeiboCount({
                     name: user,
                     action: 'del',
