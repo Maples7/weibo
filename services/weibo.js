@@ -60,7 +60,7 @@ module.exports = new class {
                 return userService.modifyWeiboCount({
                     name: keyValues.author,
                     action: 'add',
-                    transaction: options.t || t
+                    t: options.t || t
                 });
             }).tap(() => {
                 if (options.commentSync && keyValues.forwardId) {

@@ -383,13 +383,22 @@ function black(info) {
  * modifyWeiboCount 更新微博数
  */
 function modifyWeiboCount(param) {
-  return db.User.findOne({where: {name: param.name}})
+  return db.User.findOne({
+    where: {name: param.name},
+    transaction: param.t
+  })
   .then(function (ret) {
     if (param.action === 'add') {
-      ret.updateAttributes({weiboWeibo: ret.weiboWeibo + 1});
+      return ret.updateAttributes(
+        {weiboCount: ret.weiboCount + 1},
+        {transaction: param.t}
+      );
     }
     else if (param.action === 'del') {
-      ret.updateAttributes({weiboWeibo: ret.weiboWeibo - 1});
+      return ret.updateAttributes(
+        {weiboCount: ret.weiboCount - 1},
+        {transaction: param.t}
+      );
     }
     else {
       throw (new Error('更新微博数参数错误'));
