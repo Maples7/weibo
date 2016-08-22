@@ -230,14 +230,19 @@ function modifyPassword(email, password, code) {
  * @param {String} req.
  */
 function follow(info) {
-  let groups = info.group.join(" ") || null;
+  let groups = null;
+  if (info.groups) {
+    groups = info.groups;
+  }
   // 若被对方拉黑，则无法关注对方
   return db.Relationship.findOne({
-    fans: info.follow,
-    follow: info.fans
+    where: {
+      fans: info.follow,
+      follow: info.fans
+    }
   })
   .then(function (ret) {
-    if (ret.group === '黑名单') {
+    if (ret && ret.group === '黑名单') {
       throw (new Error('你已被对方拉黑，关注失败'));
     }
     return null;

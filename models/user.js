@@ -1,7 +1,6 @@
 module.exports = (sequelize, DataTypes) => sequelize.define('User', {
     name: {
         allowNull: false,
-        primaryKey: true,
         unique: true,
         type: DataTypes.STRING,
         comment: '用户名，唯一'
