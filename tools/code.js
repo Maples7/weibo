@@ -1,7 +1,7 @@
 /**
  * Created by Ming Tse on 2016/8/17
  */
-exports.aCode = aCode;
+module.exports = aCode;
 
 const min = 100000;
 const max = 1000000;

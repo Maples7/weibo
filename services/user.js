@@ -5,16 +5,13 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 const nodemailer = require('nodemailer');
 const sendmailOpt = {
-  transport: "SMTP",
-  host: "smtp.163.com",
+  host: 'smtp.163.com',
   port: 465,
+  ignoreTLS: true,
   auth: {
-    "user": "bobmingxie@163.com",
-    "password": "ourweibo2016"
-  },
-  subject: "微博邮箱验证",
-  nick: "微博<bobmingxie@163.com>",
-  secureConnection: true
+    user: 'bobmingxie@163.com',
+    pass: 'ourweibo2016'
+  }
 }
 const transporter = nodemailer.createTransport(sendmailOpt);
 
@@ -51,12 +48,13 @@ exports.getGroupMember = getGroupMember;
 function sendMail(username, useremail, code, callback) {
   let content = 'Hi, ' + username + ': \n\t' +
   '欢迎使用微博服务，您的验证码是：\n\t' +
-  code + '\n\t' + '请尽快完成邮箱验证\n\t' +
+  code + '\n\t' + '请尽快完成邮箱验证\n' +
   '[微博团队]';
   let mailContent = {
-    from : sendmailOpt.nick,
+    from : 'bobmingxie@163.com',
     to : useremail,
-    subject : sendmailOpt.subject,
+    subject : "微博邮箱验证",
+    nick: "微博<bobmingxie@163.com>",
     text : content
   };
   transporter.sendMail(mailContent, function (err, info) {
@@ -189,7 +187,7 @@ function modifyEmail(name, email) {
  * bindEmail 绑定/解绑邮箱
  */
 function bindEmail(name, email, code, flag) {
-  return db.Code.findOne({where: {name: name, code: code}})
+  return db.Code.findOne({where: {email: email, code: parseInt(code)}})
   .then(function (ret) {
     if (ret) {
       if (Date.now() - ret.createTime > 3600 * 5) {
@@ -208,15 +206,16 @@ function bindEmail(name, email, code, flag) {
 /**
  * modifyPassword 修改个人密码
  */
-function modifyPassword(name, password, code) {
+function modifyPassword(email, password, code) {
   let pass = encode(password);
-  return db.Code.findOne({where: {name: name, code: code}})
+  return db.Code.findOne({where: {email: email, code: code}})
   .then(function (ret) {
     if (ret) {
       if (Date.now() - ret.createTime > 3600 * 5) {
         return ret.destroy().then(() => {throw new Error('验证码已过期')});
       }
-      return db.User.findOne({where: {name: name}})
+      return ret.destroy()
+      .then(() => db.User.findOne({where: {email: email}}))
       .then(r => r.updateAttributes({password: pass}))
       .then(() => pass);
     }

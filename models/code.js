@@ -19,6 +19,9 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Code', {
     comment: '创建时间'
   }
 }, {
+  tableName: 'codes',
+  createdAt: false,
+  paranoid: true,
   indexes: [{
     name: 'uniq_email_create',
     fields: ['email', 'createTime'],

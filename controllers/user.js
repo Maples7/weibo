@@ -3,6 +3,7 @@
  */
 
 const _ = require('lodash');
+const Promise = require('bluebird');
 
 const user = require('../services/user');
 const status = require('../enums/resStatus');
@@ -149,7 +150,7 @@ exports.modifyEmail = function (req, res, next) {
       .catch(err => res.api_error(err.message));
     case 'unbind':
       code = req.body.code;
-      return user.unbindEmail(name, email, code, false)
+      return user.bindEmail(name, email, code, false)
       .then(ret => res.api('邮箱验证解绑成功'))
       .catch(err => res.api_error(err.message));
     default:
@@ -163,14 +164,14 @@ exports.modifyEmail = function (req, res, next) {
  * @param {String} req.body.password  - 新密码
  * @param {String} req.body.code
  * @param {Object} req.session.user
- * @param {String} req.session.user.name
+ * @param {String} req.session.user.email
  */
 exports.modifyPassword = function (req, res, next) {
   // 获取当前用户的用户名
-  let name = req.session.user.name;
+  let email = req.session.user.email;
   let password = req.body.password;
   let code = req.body.code;
-  return user.modifyPassword(name, password, code)
+  return user.modifyPassword(email, password, code)
   .then(function (ret) {
     // 修改完不退出，即时更新其当前密码
     req.session.user.password = ret;
