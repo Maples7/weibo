@@ -19,7 +19,11 @@ router.put('/users/relationship', user.modifyRelationship);
 // 发布/删除微博，计数改变
 router.put('/users/weibocount', user.modifyWeiboCount);
 // 修改分组信息
-router.put('/users/group', user.modifyGroup);
+router.put('/users/modgroup', user.modifyGroup);
+// 新建分组
+router.post('/users/addgroup', user.addGroup);
+// 删除分组
+router.delete('/users/delgroup', user.delGroup);
 
 router.get('/users/info', user.getInfo);
 router.get('/users/follow', user.getFollow);

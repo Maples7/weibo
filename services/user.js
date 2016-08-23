@@ -32,8 +32,9 @@ exports.remark = remark;
 exports.regroup = regroup;
 exports.black = black;
 exports.modifyWeiboCount = modifyWeiboCount;
+exports.addGroup = addGroup;
 exports.modifyGroup = modifyGroup;
-exports.deleteGroup = deleteGroup;
+exports.delGroup = delGroup;
 exports.getInfo = getInfo;
 exports.getRemark = getRemark;
 exports.getFollow = getFollow;
@@ -230,9 +231,9 @@ function modifyPassword(email, password, code) {
  * @param {String} req.
  */
 function follow(info) {
-  let groups = null;
+  let groups = [];
   if (info.groups) {
-    groups = info.groups;
+    groups = JSON.parse(info.groups);
   }
   // 若被对方拉黑，则无法关注对方
   return db.Relationship.findOne({
@@ -243,35 +244,53 @@ function follow(info) {
   })
   .then(function (ret) {
     if (ret && ret.group === '黑名单') {
-      throw (new Error('你已被对方拉黑，关注失败'));
+      throw new Error('你已被对方拉黑，关注失败');
     }
-    return null;
+    return db.Relationship.findOne({
+      where: {
+        fans: info.fans,
+        follow: info.follow
+      }
+    });
+  })
+  .then(function (ret) {
+    if (ret.group !== '黑名单') {
+      throw new Error('你已关注对方');
+    }
   })
   // 更新发起关注方关注数
   .then(() => db.User.findOne({where: {name: info.fans}}))
-  .then(() => ret.updateAttributes({followCount: ret.followCount + 1}))
+  .then((ret) => ret.updateAttributes({followCount: ret.followCount + 1}))
   // 更新被关注方粉丝数
   .then(() => db.User.findOne({where: {name: info.follow}}))
-  .then(() => ret.updateAttributes({fansCount: ret.fansCount + 1}))
+  .then((ret) => ret.updateAttributes({fansCount: ret.fansCount + 1}))
   // 若被分到新分组，创建分组
   .then(() => Promise.each(groups, g => db.Group.findOrCreate({where: {creator: info.fans, name: g}})))
   // 根据分组信息创建关注记录
   .then(function () {
     if (_.isEmpty(groups)) {
       return db.Relationship.create({
-        fans: req.body.fans,
-        follow: req.body.follow,
-        remark: req.body.remark || null,
-        group: '未分组'
+        fans: info.fans,
+        follow: info.follow,
+        remark: info.remark || null
       });
     }
     return Promise.each(groups, function (group) {
-      return db.Relationship.create({
-        fans: req.body.fans,
-        follow: req.body.follow,
-        remark: req.body.remark || null,
+      db.Relationship.create({
+        fans: info.fans,
+        follow: info.follow,
+        remark: info.remark || null,
         group: group
       });
+    });
+  })
+  .then(function () {
+    return db.Relationship.destroy({
+      where: {
+        fans: info.fans,
+        follow: info.follow,
+        group: '黑名单'
+      }
     });
   });
 }
@@ -282,8 +301,10 @@ function follow(info) {
 function unfollow(info) {
   // 删除关注记录
   return db.Relationship.destroy({
-    fans: info.fans,
-    follow: info.follow
+    where: {
+      fans: info.fans,
+      follow: info.follow
+    }
   })
   // 更新发起关注方关注数
   .then(ret => db.User.findOne({where: {name: info.fans}})
@@ -310,6 +331,8 @@ function remark(info) {
  * regroup 分组修改
  */
 function regroup(info) {
+  info.groups = JSON.parse(info.groups);
+  var remark;
   // 先删除不在新分组列表中的记录
   return db.Relationship.findAll({
     where: {
@@ -318,25 +341,31 @@ function regroup(info) {
     }
   })
   .then(rs => Promise.each(rs, function(r) {
-    if (!info.group.some(g => g === r)) {
+    remark = info.remark;
+    if (_.indexOf(info.groups, r) === -1) {
       r.destroy();
     }
   }))
+  // 若被分到新分组，创建分组
+  .then(() => Promise.each(groups, g => db.Group.findOrCreate({where: {creator: info.fans, name: g}})))
   // 再补上新分组列表中新分到的记录
   .then(function () {
-    if (_.isEmpty(info.group)) {
+    if (_.isEmpty(info.groups)) {
       return db.Relationship.create({
         fans: info.fans,
         follow: info.follow,
-        remark: info.remark,
-        group: '未分组'
+        remark: remark
       });
     }
-    return Promise.each(info.group, g => db.Relationship.findOrCreate({
-      fans: info.fans,
-      follow: info.follow,
-      remark: info.remark || null,
-      group: g
+    return Promise.each(info.groups, g => db.Relationship.findOrCreate({
+      where: {
+        fans: info.fans,
+        follow: info.follow,
+        group: g
+      },
+      defaults: {
+        remark: remark
+      }
     }));
   })
 }
@@ -352,17 +381,20 @@ function black(info) {
     }
   })
   .then(function (rs) {
+    if (rs.length === 1 && rs[0].group === '黑名单') {
+      throw new Error('你已拉黑对方');
+    }
     // 若要拉黑已关注的人，先修改双方关注/粉丝数
     if (!_.isEmpty(rs)) {
       // 更新发起关注方关注数
-      return db.User.findOne({where: {name: fans}})
+      return db.User.findOne({where: {name: info.fans}})
       .then(ret => ret.updateAttributes({followCount: ret.followCount - 1}))
       // 更新被关注方粉丝数
-      .then(ret => db.User.findOne({where: {name: follow}})
+      .then(ret => db.User.findOne({where: {name: info.follow}})
       .then(ret => ret.updateAttributes({fansCount: ret.fansCount - 1})))
       // 删除关注记录
       .then(function () {
-        return Promise.each(rs, r => ret.destroy());
+        return Promise.each(rs, r => r.destroy());
       });
     }
   })
@@ -377,8 +409,10 @@ function black(info) {
   // 把被拉黑者对拉黑者的关注删除
   .then(function () {
     return db.Relationship.destroy({
-      fans: info.follow,
-      follow: info.fans
+      where:{
+        fans: info.follow,
+        follow: info.fans
+      }
     });
   });
 }
@@ -411,38 +445,77 @@ function modifyWeiboCount(param) {
 }
 
 /**
+ * addGroup 新建分组
+ * @param {Object} group
+ * @param {String} creator
+ */
+function addGroup(group, creator) {
+  return db.Group.findOrCreate({
+    where: {
+      name: group.name,
+      creator: creator
+    },
+    defaults: {
+      description: group.description || null,
+      public: group.public
+    }
+  })
+  .then(function (ret) {
+    if (!ret[1]) {
+      throw new Error('此分组名已存在');
+    }
+  });
+}
+
+/**
  * modifyGroup 更新分组信息
  * @param {String} name
  * @param {String} oldGroup
  * @param {Object} newGroup
  */
 function modifyGroup(old, creator, group) {
-  // 更新分组列表里该分组信息
   return db.Group.findOne({
     where: {
-      name: old,
+      name: group.name,
       creator: creator
     }
   })
-  .then(ret => ret.updateAttributes(group))
-  // 更新关注列表里该分组组名
-  .then(function() {
-    return db.Relationship.find({
+  .then(function (ret) {
+    if (!ret) {
+      throw new Error('分组名已被使用');
+    }
+    // 更新分组列表里该分组信息
+    return db.Group.findOne({
       where: {
-        fans: creator,
-        group: old
+        name: old,
+        creator: creator
       }
     });
   })
-  .then(results => Promise.each(results, function(result) {
-    return result.updateAttributes({group: group.name});
-  }));
+  .then(function (ret) {
+    return ret.updateAttributes(group);
+  })
+  // 更新关注列表里该分组组名
+  .then(function() {
+    if (old !== group.name) {
+        return db.Relationship.find({
+        where: {
+          fans: creator,
+          group: old
+        }
+      })
+      .then(results => Promise.each(results, function(result) {
+        return result.updateAttributes({group: group.name});
+      }));
+    }
+    return null;
+  });
 }
 
 /**
  * deleteGroup 删除分组
  */
-function deleteGroup(creator, group) {
+function delGroup(creator, group) {
   // 删除分组列表里该分组
   return db.Group.destroy({
     where: {
@@ -468,7 +541,7 @@ function deleteGroup(creator, group) {
       })
       .then(function (num) {
         if (num === 1) {
-          result.updateAttributes({group: '未分组'});
+          result.updateAttributes({group: null});
         }
         else {
           result.destroy();
@@ -517,8 +590,8 @@ function getFans(name) {
 /**
  * getGroups 获取分组列表
  */
-function getGroups(name) {
-  return db.Group.findAll({where: {creator: name}})
+function getGroups(name, flag) {
+  return db.Group.findAll({where: {creator: name, public: flag}})
   .then(ret => ret.push('未分组', '黑名单'))
   .catch(err => err);
 }

@@ -210,7 +210,7 @@ exports.modifyRelationship = function (req, res, next) {
       return user.regroup(req.body)
       .then(ret => res.api('编辑分组成功'))
       .catch(err => res.api_error(err.message));
-    case 'blcak':
+    case 'black':
       return user.black(req.body)
       .then(ret => res.api('拉黑成功'))
       .catch(err => res.api_error(err.message));
@@ -231,17 +231,36 @@ exports.modifyWeiboCount = function (req, res, next) {
 }
 
 /**
+ * 用户新建分组 - POST
+ * @param {Object} req.body
+ * @param {String} req.body.name
+ * @param {String} req.body.description 
+ */
+exports.addGroup = function (req, res, next) {
+  if (!req.body.name) {
+    return res.api_error(...status.lackParams);
+  }
+  if (req.body.name === null || req.body.name === '黑名单') {
+    return res.api_error('不可与固定分组重名');
+  }
+  return user.addGroup(req.body, req.session.user.name)
+  .then(ret => res.api('新建分组信息成功'))
+  .catch(err => res.api_error(err.message));
+}
+
+
+/**
  * 用户修改分组信息 - PUT
  * @param {Object} req.body
  * @param {Object} req.body.group -分组新信息
  * @param {String} req.body.old -分组旧名
  */
 exports.modifyGroup = function (req, res, next) {
-  if (req.body.old === '未分组' || req.body.old === '黑名单') {
-    throw (new Error('固定分组不可更改'));
+  if (req.body.old === null || req.body.old === '黑名单') {
+    return res.api_error('固定分组不可更改');
   }
-  if (req.body.group.name === '未分组' || req.body.group.name === '黑名单') {
-    throw (new Error('不可与固定分组重名'));
+  if (req.body.group.name === null || req.body.group.name === '黑名单') {
+    return res.api_error('不可与固定分组重名');
   }
   return user.modifyGroup(req.body.old, req.session.user.name, req.body.group)
   .then(ret => res.api('修改分组信息成功'))
@@ -253,11 +272,11 @@ exports.modifyGroup = function (req, res, next) {
  * @param {Object} req.body
  * @param {String} req.body.old -分组旧名
  */
-exports.deleteGroup = function (req, res, next) {
+exports.delGroup = function (req, res, next) {
   if (req.body.old === '未分组' || req.body.old === '黑名单') {
-    throw (new Error('固定分组不可删除'));
+    return res.api_error('固定分组不可删除');
   }
-  return user.deleteGroup(req.body.old, req.session.user.name)
+  return user.delGroup(req.body.old, req.session.user.name)
   .then(ret => res.api('删除分组成功'))
   .catch(err => res.api_error(err.message));
 }
@@ -311,7 +330,11 @@ exports.getFans = function (req, res, next) {
  * @param {String} req.query.name
  */
 exports.getGroups = function (req, res, next) {
-  return user.getGroups(req.query.name)
+  let flag = null;
+  if (req.query.name !== req.session.user.name) {
+    flag = true;
+  }
+  return user.getGroups(req.query.name, flag)
   .then(ret => res.api(ret))
   .catch(err => res.api_error(err.message));
 }
