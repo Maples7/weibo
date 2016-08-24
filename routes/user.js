@@ -14,7 +14,7 @@ router.get('/users/logout', user.logout);
 
 // 修改个人信息
 router.put('/users/info', user.modifyInfo);
-// 添加/取消关注，相应计数改变
+// 关注、分组、拉黑相关，相应计数改变
 router.put('/users/relationship', user.modifyRelationship);
 // 发布/删除微博，计数改变
 router.put('/users/weibocount', user.modifyWeiboCount);

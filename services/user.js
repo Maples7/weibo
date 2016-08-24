@@ -31,6 +31,7 @@ exports.unfollow = unfollow;
 exports.remark = remark;
 exports.regroup = regroup;
 exports.black = black;
+exports.unblack = unblack;
 exports.modifyWeiboCount = modifyWeiboCount;
 exports.addGroup = addGroup;
 exports.modifyGroup = modifyGroup;
@@ -232,8 +233,13 @@ function modifyPassword(email, password, code) {
  */
 function follow(info) {
   let groups = [];
-  if (info.groups) {
-    groups = JSON.parse(info.groups);
+  if (typeof info.groups !== 'object') {
+    try {
+      groups = JSON.parse(info.groups);
+    }
+    catch (err) {
+      return Promise.reject('请规范传入的分组信息，不接收单引号，属性名请用双引号引出');
+    }
   }
   // 若被对方拉黑，则无法关注对方
   return db.Relationship.findOne({
@@ -303,7 +309,8 @@ function unfollow(info) {
   return db.Relationship.destroy({
     where: {
       fans: info.fans,
-      follow: info.follow
+      follow: info.follow,
+      group: {$ne: '黑名单'}
     }
   })
   // 更新发起关注方关注数
@@ -331,7 +338,14 @@ function remark(info) {
  * regroup 分组修改
  */
 function regroup(info) {
-  info.groups = JSON.parse(info.groups);
+  if (typeof info.groups !== 'object') {
+    try {
+      info.groups = JSON.parse(info.groups);
+    }
+    catch (err) {
+      return Promise.reject('请规范传入的分组信息，不接收单引号，属性名请用双引号引出');
+    }
+  }
   var remark;
   // 先删除不在新分组列表中的记录
   return db.Relationship.findAll({
@@ -418,6 +432,20 @@ function black(info) {
 }
 
 /**
+ * unblack 解除黑名单
+ */
+function unblack(info) {
+  // 删除拉黑记录
+  return db.Relationship.destroy({
+    where: {
+      fans: info.fans,
+      follow: info.follow,
+      group: '黑名单'
+    }
+  });
+}
+
+/**
  * modifyWeiboCount 更新微博数
  */
 function modifyWeiboCount(param) {
@@ -481,7 +509,7 @@ function modifyGroup(old, creator, group) {
     }
   })
   .then(function (ret) {
-    if (!ret) {
+    if (ret && old !== group.name) {
       throw new Error('分组名已被使用');
     }
     // 更新分组列表里该分组信息
@@ -498,15 +526,20 @@ function modifyGroup(old, creator, group) {
   // 更新关注列表里该分组组名
   .then(function() {
     if (old !== group.name) {
-        return db.Relationship.find({
+      return db.Relationship.find({
         where: {
           fans: creator,
           group: old
         }
       })
-      .then(results => Promise.each(results, function(result) {
-        return result.updateAttributes({group: group.name});
-      }));
+      .then(results => {
+        if (results) {
+          Promise.each(results, function(result) {
+            return result.updateAttributes({group: group.name});
+          });
+        }
+        return null;
+      });
     }
     return null;
   });
@@ -515,15 +548,18 @@ function modifyGroup(old, creator, group) {
 /**
  * deleteGroup 删除分组
  */
-function delGroup(creator, group) {
+function delGroup(group, creator) {
   // 删除分组列表里该分组
   return db.Group.destroy({
     where: {
       creator: creator,
-      group: group
+      name: group
     }
   })
   .then(function (ret) {
+    if (!ret) {
+      throw new Error('此分组不存在');
+    }
     // 关注列表里删除分组
     return db.Relationship.find({
       where: {
@@ -531,23 +567,27 @@ function delGroup(creator, group) {
         group: group
       }
     })
-    .then(results => Promise.each(results, function(result) {
-      // 若某被关注者仅被分到该分组，则分到'未分组'
-      return db.Relationship.count({
-        where: {
-          fans: creator,
-          follow: result
-        }
-      })
-      .then(function (num) {
-        if (num === 1) {
-          result.updateAttributes({group: null});
-        }
-        else {
-          result.destroy();
-        }
-      });
-    }));
+    .then(results => {
+      if (results) {
+        Promise.each(results, function(result) {
+          // 若某被关注者仅被分到该分组，则分到'未分组'
+          return db.Relationship.count({
+            where: {
+              fans: creator,
+              follow: result
+            }
+          })
+          .then(function (num) {
+            if (num === 1) {
+              result.updateAttributes({group: null});
+            }
+            else {
+              result.destroy();
+            }
+          });
+        });
+      }
+    });
   });
 }
 
@@ -590,9 +630,9 @@ function getFans(name) {
 /**
  * getGroups 获取分组列表
  */
-function getGroups(name, flag) {
-  return db.Group.findAll({where: {creator: name, public: flag}})
-  .then(ret => ret.push('未分组', '黑名单'))
+function getGroups(where) {
+  return db.Group.findAll({where: where})
+  .then(ret => {ret.push('未分组', '黑名单'); return ret;})
   .catch(err => err);
 }
 

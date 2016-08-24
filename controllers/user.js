@@ -214,6 +214,10 @@ exports.modifyRelationship = function (req, res, next) {
       return user.black(req.body)
       .then(ret => res.api('拉黑成功'))
       .catch(err => res.api_error(err.message));
+    case 'unblack':
+      return user.unblack(req.body)
+      .then(ret => res.api('解除黑名单成功'))
+      .catch(err => res.api_error(err.message));
     default:
       return res.api(...status.apiNotFound);
   }
@@ -256,6 +260,14 @@ exports.addGroup = function (req, res, next) {
  * @param {String} req.body.old -分组旧名
  */
 exports.modifyGroup = function (req, res, next) {
+  if (typeof req.body.group !== 'object') {
+    try {
+      req.body.group = JSON.parse(req.body.group);
+    }
+    catch (err) {
+      return res.api_error('请规范传入的分组信息，不接收单引号，属性名请用双引号引出');
+    }
+  }
   if (req.body.old === null || req.body.old === '黑名单') {
     return res.api_error('固定分组不可更改');
   }
@@ -273,10 +285,10 @@ exports.modifyGroup = function (req, res, next) {
  * @param {String} req.body.old -分组旧名
  */
 exports.delGroup = function (req, res, next) {
-  if (req.body.old === '未分组' || req.body.old === '黑名单') {
+  if (req.query.old === '未分组' || req.query.old === '黑名单') {
     return res.api_error('固定分组不可删除');
   }
-  return user.delGroup(req.body.old, req.session.user.name)
+  return user.delGroup(req.query.old, req.session.user.name)
   .then(ret => res.api('删除分组成功'))
   .catch(err => res.api_error(err.message));
 }
@@ -330,11 +342,11 @@ exports.getFans = function (req, res, next) {
  * @param {String} req.query.name
  */
 exports.getGroups = function (req, res, next) {
-  let flag = null;
+  let where = {creator: req.query.name};
   if (req.query.name !== req.session.user.name) {
-    flag = true;
+    where.public = true;
   }
-  return user.getGroups(req.query.name, flag)
+  return user.getGroups(where)
   .then(ret => res.api(ret))
   .catch(err => res.api_error(err.message));
 }
