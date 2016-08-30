@@ -23,7 +23,7 @@ router.put('/users/modgroup', user.modifyGroup);
 // 新建分组
 router.post('/users/addgroup', user.addGroup);
 // 删除分组
-router.delete('/users/delgroup', user.delGroup);
+router.get('/users/delgroup', user.delGroup);
 
 router.get('/users/info', user.getInfo);
 router.get('/users/follow', user.getFollow);

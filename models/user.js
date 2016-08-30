@@ -1,4 +1,12 @@
 module.exports = (sequelize, DataTypes) => sequelize.define('User', {
+    id: {
+        allowNull: false,
+        unique: true,
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+        comment: '用户id'
+    },
     name: {
         allowNull: false,
         unique: true,
@@ -71,5 +79,6 @@ module.exports = (sequelize, DataTypes) => sequelize.define('User', {
         comment: '用户邮箱是否已验证'
     }
 }, {
-    timestamps: false
+    timestamps: false,
+    paranoid: true
 })

@@ -94,14 +94,14 @@ exports.logout = function (req, res, next) {
  * @param {String} 
  */
 exports.modifyInfo = function (req, res, next) {
+  if (!req.session || !req.session.user) {
+    return res.api_error('请登录后再修改信息');
+  }
   // 获取当前用户的用户名作旧名
-  let name = req.session.user.name;
-  return user.modifyInfo(name, req.body)
-  .then(function (newname) {
-    // 若修改了影响了登录的name，需重置session
-    if (newname) {
-      req.session.user.name = newname;
-    }
+  let id = req.session.user.id;
+  return user.modifyInfo(id, req.body)
+  .then(function (ret) {
+    req.session.user = ret;
     return res.api('信息修改成功');
   })
   .catch(err => res.api_error(err.message));
@@ -111,7 +111,10 @@ exports.modifyInfo = function (req, res, next) {
  * 发起发送邮箱请求 - GET
  */
 exports.sendMail = function (req, res, next) {
-  let name = req.query.name;
+  if (!req.session || !req.session.user) {
+    return res.api_error('请登录后再修改信息');
+  }
+  let name = req.session.user.name;
   let email = req.query.email;
   let code = aCode();
   return Promise.promisify(user.sendMail)(name, email, code)
@@ -123,34 +126,37 @@ exports.sendMail = function (req, res, next) {
 /**
  * 用户验证邮箱 - PUT
  * @param {Object} req.body
- * @param {String} req.body.name
+ * @param {String} req.body.id
  * @param {String} req.body.act - 修改/绑定/解绑
  * @param {String} req.body.email - 修改时为新邮箱，绑定/解绑时为旧邮箱
  * @param {String} req.body.code
  */
 exports.modifyEmail = function (req, res, next) {
+  if (!req.session || !req.session.user) {
+    return res.api_error('请登录后再修改信息');
+  }
   let act = req.body.act;
   // 获取当前用户的用户名
-  let name = req.session.user.name;
+  let id = req.session.user.id;
   let email = req.body.email;
   let code;
   switch (act) {
     case 'modify':
-      return user.modifyEmail(name, email)
+      return user.modifyEmail(id, email)
       .then(function (ret) {
         // 修改了影响了登录的email，需重置session
         req.session.user.email = ret;
-        return res.api('信息修改成功');
+        return res.api('邮箱修改成功');
       })
       .catch(err => res.api_error(err.message));
     case 'bind':
       code = req.body.code;
-      return user.bindEmail(name, email, code, true)
+      return user.bindEmail(id, email, code, true)
       .then(ret => res.api('邮箱验证绑定成功'))
       .catch(err => res.api_error(err.message));
     case 'unbind':
       code = req.body.code;
-      return user.bindEmail(name, email, code, false)
+      return user.bindEmail(id, email, code, false)
       .then(ret => res.api('邮箱验证解绑成功'))
       .catch(err => res.api_error(err.message));
     default:
@@ -167,6 +173,9 @@ exports.modifyEmail = function (req, res, next) {
  * @param {String} req.session.user.email
  */
 exports.modifyPassword = function (req, res, next) {
+  if (!req.session || !req.session.user) {
+    return res.api_error('请登录后再修改信息');
+  }
   // 获取当前用户的用户名
   let email = req.session.user.email;
   let password = req.body.password;
@@ -189,6 +198,9 @@ exports.modifyPassword = function (req, res, next) {
  * @param {String} [req.body.group]  -分组数组
  */
 exports.modifyRelationship = function (req, res, next) {
+  if (!req.session || !req.session.user) {
+    return res.api_error('请登录后再修改信息');
+  }
   let action = req.body.act;
   switch (action) {
     case 'follow':
@@ -230,8 +242,13 @@ exports.modifyRelationship = function (req, res, next) {
  * @param {String} req.body.name
  */
 exports.modifyWeiboCount = function (req, res, next) {
-  let param = {action: req.body.act, name: req.body.name}
-  return user.modifyWeiboCoun(param);
+  if (!req.session || !req.session.user) {
+    return res.api_error('请登录后再修改信息');
+  }
+  let param = {action: req.body.act, id: req.session.user.id}
+  return user.modifyWeiboCount(param)
+  .then(ret => res.api('微博计数更新成功'))
+  .catch(err => res.api_error(err.message));
 }
 
 /**
@@ -241,14 +258,17 @@ exports.modifyWeiboCount = function (req, res, next) {
  * @param {String} req.body.description 
  */
 exports.addGroup = function (req, res, next) {
+  if (!req.session || !req.session.user) {
+    return res.api_error('请登录后再修改信息');
+  }
   if (!req.body.name) {
     return res.api_error(...status.lackParams);
   }
-  if (req.body.name === null || req.body.name === '黑名单') {
+  if (req.body.name === '未分组' || req.body.name === '黑名单') {
     return res.api_error('不可与固定分组重名');
   }
-  return user.addGroup(req.body, req.session.user.name)
-  .then(ret => res.api('新建分组信息成功'))
+  return user.addGroup(req.body, req.session.user.id)
+  .then(ret => res.api('新建分组成功'))
   .catch(err => res.api_error(err.message));
 }
 
@@ -257,9 +277,15 @@ exports.addGroup = function (req, res, next) {
  * 用户修改分组信息 - PUT
  * @param {Object} req.body
  * @param {Object} req.body.group -分组新信息
- * @param {String} req.body.old -分组旧名
+ * @param {String} req.body.old -分组旧id
  */
 exports.modifyGroup = function (req, res, next) {
+  if (!req.session || !req.session.user) {
+    return res.api_error('请登录后再修改信息');
+  }
+  if (!req.body.old) {
+    return res.api_error(...status.lackParams);
+  }
   if (typeof req.body.group !== 'object') {
     try {
       req.body.group = JSON.parse(req.body.group);
@@ -268,10 +294,7 @@ exports.modifyGroup = function (req, res, next) {
       return res.api_error('请规范传入的分组信息，不接收单引号，属性名请用双引号引出');
     }
   }
-  if (req.body.old === null || req.body.old === '黑名单') {
-    return res.api_error('固定分组不可更改');
-  }
-  if (req.body.group.name === null || req.body.group.name === '黑名单') {
+  if (req.body.group.name === '未分组' || req.body.group.name === '黑名单') {
     return res.api_error('不可与固定分组重名');
   }
   return user.modifyGroup(req.body.old, req.session.user.name, req.body.group)
@@ -282,13 +305,13 @@ exports.modifyGroup = function (req, res, next) {
 /**
  * 用户删除分组 - DELETE
  * @param {Object} req.body
- * @param {String} req.body.old -分组旧名
+ * @param {String} req.body.gid -分组id
  */
 exports.delGroup = function (req, res, next) {
-  if (req.query.old === '未分组' || req.query.old === '黑名单') {
-    return res.api_error('固定分组不可删除');
+  if (!req.session || !req.session.user) {
+    return res.api_error('请登录后再修改信息');
   }
-  return user.delGroup(req.query.old, req.session.user.name)
+  return user.delGroup(req.query.gid, req.session.user.id)
   .then(ret => res.api('删除分组成功'))
   .catch(err => res.api_error(err.message));
 }
@@ -296,15 +319,18 @@ exports.delGroup = function (req, res, next) {
 /**
  * 用户获取个人信息 - GET
  * @param {Object} req.query
- * @param {String} req.query.name
+ * @param {Number} req.query.id
  */
 exports.getInfo = function (req, res, next) {
-  return user.getInfo(req.query.name)
+  req.query.id = parseInt(req.query.id);
+  return user.getInfo(req.query.id)
   .then(function (result) {
-    if (req.query.name !== req.session.user.name) {
-      return user.getRemark(req.session.user.name, req.query.name)
+    if (req.session.user && req.query.id !== req.session.user.id) {
+      return user.getRemark(req.session.user.id, req.query.id)
       .then(function (remark) {
-        result.remark = remark;
+        if (remark !== '' && remark !== null) {
+          result.remark = remark;
+        }
         return result;
       });
     }

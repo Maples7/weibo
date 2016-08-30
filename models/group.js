@@ -1,8 +1,15 @@
 module.exports = (sequelize, DataTypes) => sequelize.define('Group', {
+  gid: {
+    allowNull: false,
+    type: DataTypes.INTEGER(100),
+    autoIncrement: true,
+    primaryKey: true,
+    comment: '分组id'
+  },
   creator: {
     allowNull: false,
-    type: DataTypes.STRING,
-    references: {model: 'Users', key: 'name'},
+    type: DataTypes.INTEGER.UNSIGNED,
+    references: {model: 'Users', key: 'id'},
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
     comment: '分组创建者'

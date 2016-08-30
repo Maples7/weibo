@@ -138,50 +138,36 @@ function register(userObj) {
       sex: userObj.sex,
       createTime: Date.now() 
     });
-  });
-  // .then(ret => db.Group.create({creator: userObj.name, name: '未分组'})
-  // .then(ret => db.Group.create({creator: userObj.name, name: '黑名单'})));
+  })
+  .then(ret => db.Group.create({creator: userObj.name, name: '未分组'})
+  .then(ret => db.Group.create({creator: userObj.name, name: '黑名单'})));
 }
 
 /**
  * modifyInfo 修改个人信息
  */
-function modifyInfo(name, userObj) {
-  return db.User.findOne({where: {name: name}})
+function modifyInfo(id, userObj) {
+  return db.User.update(userObj, {where: {id: id}, returning: true})
   .then(function (ret) {
-    return ret.updateAttributes(userObj)
-    .then(function (r) {
-      // 若用户名更改，需同时修改分组表、关注表
-      if (userObj.name !== name) {
-        return db.Group.findAll({where : {creator: name}})
-        .then(results => Promise.each(results, function(result) {
-          return result.updateAttributes({creator: userObj.name});
-        }))
-        .then(() => db.Relationship.findAll({where: {fans: name}}))
-        .then(results => Promise.each(results, function(result) {
-          return result.updateAttributes({fans: userObj.name});
-        }))
-        .then(() => db.Relationship.findAll({where: {follow: name}}))
-        .then(results => Promise.each(results, function(result) {
-          return result.updateAttributes({follow: userObj.name});
-        }))
-        .then(() => userObj.name);
-      }
-      return null;
-    });
+    if (ret[0]) {
+      return ret[1];
+    }
+    else {
+      throw new Error('修改信息失败');
+    }
   });
 }
 
 /**
  * modifyEmail 修改个人邮箱
  */
-function modifyEmail(name, email) {
-  return db.User.findOne({where: {name: name}})
+function modifyEmail(id, email) {
+  return db.User.findOne({where: {id: id}})
   .then(function (ret) {
     if (ret.emailConfirm) {
       throw new Error('邮箱已绑定，请解绑后修改');
     }
-    return ret.updateAttributes({email: email, emailConfirm: false});
+    return ret.updateAttributes({email: email});
   });
 }
 
@@ -450,7 +436,7 @@ function unblack(info) {
  */
 function modifyWeiboCount(param) {
   return db.User.findOne({
-    where: {name: param.name},
+    where: {id: param.id},
     transaction: param.t
   })
   .then(function (ret) {
@@ -467,7 +453,7 @@ function modifyWeiboCount(param) {
       );
     }
     else {
-      throw (new Error('更新微博数参数错误'));
+      throw new Error('更新微博数参数错误');
     }
   });
 }
@@ -515,12 +501,16 @@ function modifyGroup(old, creator, group) {
     // 更新分组列表里该分组信息
     return db.Group.findOne({
       where: {
-        name: old,
-        creator: creator
+        id: old,
+        creator: creator,
+        name: {$notIn: ['未分组', '黑名单']}
       }
     });
   })
   .then(function (ret) {
+    if (!ret) {
+      throw new Error('原分组信息有误，未找到该分组');
+    }
     return ret.updateAttributes(group);
   })
   // 更新关注列表里该分组组名
@@ -548,12 +538,13 @@ function modifyGroup(old, creator, group) {
 /**
  * deleteGroup 删除分组
  */
-function delGroup(group, creator) {
+function delGroup(gid, creator) {
   // 删除分组列表里该分组
   return db.Group.destroy({
     where: {
       creator: creator,
-      name: group
+      gid: gid,
+      name: {$notIn: ['未分组', '黑名单']}
     }
   })
   .then(function (ret) {
@@ -561,31 +552,10 @@ function delGroup(group, creator) {
       throw new Error('此分组不存在');
     }
     // 关注列表里删除分组
-    return db.Relationship.find({
+    return db.Relationship.destroy({
       where: {
         fans: creator,
-        group: group
-      }
-    })
-    .then(results => {
-      if (results) {
-        Promise.each(results, function(result) {
-          // 若某被关注者仅被分到该分组，则分到'未分组'
-          return db.Relationship.count({
-            where: {
-              fans: creator,
-              follow: result
-            }
-          })
-          .then(function (num) {
-            if (num === 1) {
-              result.updateAttributes({group: null});
-            }
-            else {
-              result.destroy();
-            }
-          });
-        });
+        group: gid
       }
     });
   });
@@ -594,8 +564,8 @@ function delGroup(group, creator) {
 /**
  * getInfo 获取个人信息
  */
-function getInfo(name) {
-  return db.User.findOne({where: {name: name}})
+function getInfo(id) {
+  return db.User.findOne({where: {id: id}})
   .then(ret => ret.dataValues)
   .catch(err => err);
 }
@@ -605,7 +575,7 @@ function getInfo(name) {
  */
 function getRemark(fans, follow) {
   return db.Relationship.findOne({where: {fans: fans, follow: follow}})
-  .then(ret => ret.dataValues.remark)
+  .then(ret => ret ? ret.dataValues.remark : '')
   .catch(err => err);
 }
 
