@@ -98,8 +98,8 @@ exports.modifyInfo = function (req, res, next) {
     return res.api_error('请登录后再修改信息');
   }
   // 获取当前用户的用户名作旧名
-  let id = req.session.user.id;
-  return user.modifyInfo(id, req.body)
+  let uid = req.session.user.uid;
+  return user.modifyInfo(uid, req.body)
   .then(function (ret) {
     req.session.user = ret;
     return res.api('信息修改成功');
@@ -137,12 +137,12 @@ exports.modifyEmail = function (req, res, next) {
   }
   let act = req.body.act;
   // 获取当前用户的用户名
-  let id = req.session.user.id;
+  let uid = req.session.user.uid;
   let email = req.body.email;
   let code;
   switch (act) {
     case 'modify':
-      return user.modifyEmail(id, email)
+      return user.modifyEmail(uid, email)
       .then(function (ret) {
         // 修改了影响了登录的email，需重置session
         req.session.user.email = ret;
@@ -151,12 +151,12 @@ exports.modifyEmail = function (req, res, next) {
       .catch(err => res.api_error(err.message));
     case 'bind':
       code = req.body.code;
-      return user.bindEmail(id, email, code, true)
+      return user.bindEmail(uid, email, code, true)
       .then(ret => res.api('邮箱验证绑定成功'))
       .catch(err => res.api_error(err.message));
     case 'unbind':
       code = req.body.code;
-      return user.bindEmail(id, email, code, false)
+      return user.bindEmail(uid, email, code, false)
       .then(ret => res.api('邮箱验证解绑成功'))
       .catch(err => res.api_error(err.message));
     default:
@@ -245,7 +245,7 @@ exports.modifyWeiboCount = function (req, res, next) {
   if (!req.session || !req.session.user) {
     return res.api_error('请登录后再修改信息');
   }
-  let param = {action: req.body.act, id: req.session.user.id}
+  let param = {action: req.body.act, uid: req.session.user.uid}
   return user.modifyWeiboCount(param)
   .then(ret => res.api('微博计数更新成功'))
   .catch(err => res.api_error(err.message));
@@ -267,7 +267,7 @@ exports.addGroup = function (req, res, next) {
   if (req.body.name === '未分组' || req.body.name === '黑名单') {
     return res.api_error('不可与固定分组重名');
   }
-  return user.addGroup(req.body, req.session.user.id)
+  return user.addGroup(req.body, req.session.user.uid)
   .then(ret => res.api('新建分组成功'))
   .catch(err => res.api_error(err.message));
 }
@@ -297,7 +297,7 @@ exports.modifyGroup = function (req, res, next) {
   if (req.body.group.name === '未分组' || req.body.group.name === '黑名单') {
     return res.api_error('不可与固定分组重名');
   }
-  return user.modifyGroup(req.body.old, req.session.user.name, req.body.group)
+  return user.modifyGroup(req.body.old, req.session.user.uid, req.body.group)
   .then(ret => res.api('修改分组信息成功'))
   .catch(err => res.api_error(err.message));
 }
@@ -322,11 +322,11 @@ exports.delGroup = function (req, res, next) {
  * @param {Number} req.query.id
  */
 exports.getInfo = function (req, res, next) {
-  req.query.id = parseInt(req.query.id);
-  return user.getInfo(req.query.id)
+  req.query.uid = parseInt(req.query.uid);
+  return user.getInfo(req.query.uid)
   .then(function (result) {
-    if (req.session.user && req.query.id !== req.session.user.id) {
-      return user.getRemark(req.session.user.id, req.query.id)
+    if (req.session.user && req.query.uid !== req.session.user.uid) {
+      return user.getRemark(req.session.user.uid, req.query.uid)
       .then(function (remark) {
         if (remark !== '' && remark !== null) {
           result.remark = remark;
@@ -384,7 +384,10 @@ exports.getGroups = function (req, res, next) {
  * @param {String} req.query.group
  */
 exports.getGroupDetail = function (req, res, next) {
-  return user.getGroupDetail(req.query.name, req.query.group)
+  if (!req.session.user) {
+    throw new Error('请登录后查看分组');
+  }
+  return user.getGroupDetail(req.session.user.uid, req.query.gid)
   .then(ret => res.api(ret))
   .catch(err => res.api_error(err.message));
 }

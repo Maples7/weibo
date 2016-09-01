@@ -61,12 +61,12 @@ password: 密码 String
 获取用户信息 - GET
 
 传入(query):    
-id: 被查询用户id Number
+uid: 被查询用户uid Number
 
 返回：
 {
   "data": {
-    "id": 1,
+    "uid": 1,
     "name": "bob",
     "email": "bobmingxie@163.com",
     "password": "e10adc3949ba59abbe56e057f20f883e",
@@ -244,3 +244,32 @@ gid: 要被删除的分组id Number
     "msg": "request success!"
   }
 }
+
+## /users/groupdetail    
+分组信息 - GET
+
+传入(query):    
+gid: 被查询的分组id Number
+
+返回：    
+{
+  "data": {
+    "gid": 3,
+    "creator": 1
+    "name": "老同学",
+    "description": "bob的老同学",
+    "public": false,
+    "createAt": 2016-08-31 19:00:00,
+    "updateAt": 2016-08-31 19:00:00,
+    "deleteAt": 0
+  },
+  "status": {
+    "code": 0,
+    "msg": "request success!"
+  }
+}
+
+## /users/groups
+全部分组 - GET 
+
+传入

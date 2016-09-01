@@ -146,8 +146,8 @@ function register(userObj) {
 /**
  * modifyInfo 修改个人信息
  */
-function modifyInfo(id, userObj) {
-  return db.User.update(userObj, {where: {id: id}, returning: true})
+function modifyInfo(uid, userObj) {
+  return db.User.update(userObj, {where: {uid: uid}, returning: true})
   .then(function (ret) {
     if (ret[0]) {
       return ret[1];
@@ -161,8 +161,8 @@ function modifyInfo(id, userObj) {
 /**
  * modifyEmail 修改个人邮箱
  */
-function modifyEmail(id, email) {
-  return db.User.findOne({where: {id: id}})
+function modifyEmail(uid, email) {
+  return db.User.findOne({where: {uid: uid}})
   .then(function (ret) {
     if (ret.emailConfirm) {
       throw new Error('邮箱已绑定，请解绑后修改');
@@ -174,14 +174,14 @@ function modifyEmail(id, email) {
 /**
  * bindEmail 绑定/解绑邮箱
  */
-function bindEmail(name, email, code, flag) {
+function bindEmail(uid, email, code, flag) {
   return db.Code.findOne({where: {email: email, code: parseInt(code)}})
   .then(function (ret) {
     if (ret) {
       if (Date.now() - ret.createTime > 3600 * 5) {
         return ret.destroy().then(() => {throw new Error('验证码已过期')});
       }
-      return db.User.findOne({where: {name: name, email: email}})
+      return db.User.findOne({where: {uid: uid, email: email}})
       .then(r => r.updateAttributes({emailConfirm: flag}))
       .then(() => ret.destroy());
     }
@@ -436,7 +436,7 @@ function unblack(info) {
  */
 function modifyWeiboCount(param) {
   return db.User.findOne({
-    where: {id: param.id},
+    where: {uid: param.uid},
     transaction: param.t
   })
   .then(function (ret) {
@@ -501,7 +501,7 @@ function modifyGroup(old, creator, group) {
     // 更新分组列表里该分组信息
     return db.Group.findOne({
       where: {
-        id: old,
+        gid: old,
         creator: creator,
         name: {$notIn: ['未分组', '黑名单']}
       }
@@ -512,26 +512,6 @@ function modifyGroup(old, creator, group) {
       throw new Error('原分组信息有误，未找到该分组');
     }
     return ret.updateAttributes(group);
-  })
-  // 更新关注列表里该分组组名
-  .then(function() {
-    if (old !== group.name) {
-      return db.Relationship.find({
-        where: {
-          fans: creator,
-          group: old
-        }
-      })
-      .then(results => {
-        if (results) {
-          Promise.each(results, function(result) {
-            return result.updateAttributes({group: group.name});
-          });
-        }
-        return null;
-      });
-    }
-    return null;
   });
 }
 
@@ -609,9 +589,17 @@ function getGroups(where) {
 /**
  * getGroupDetail 获取分组详情
  */
-function getGroupDetail(name, group) {
-  return db.Group.findOne({where: {creator: name, name: group}})
-  .then(ret => ret)
+function getGroupDetail(uid, gid) {
+  return db.Group.findOne({where: {gid: gid}})
+  .then(ret => {
+    if (!ret) {
+      throw new Error('该分组不存在');
+    }
+    if (ret.creator !== uid && !ret.public) {
+      throw new Error('您无权查看该分组');
+    }
+    return ret;
+  })
   .catch(err => err);
 }
 
