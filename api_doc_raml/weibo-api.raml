@@ -1,0 +1,142 @@
+#%RAML 0.8
+---
+title: Weibo
+baseUri: http://127.0.0.1:3000/
+version: v1
+
+/users:
+  /register:
+    post:
+      description: 用户注册
+      queryParameters:
+        name:
+          type: string
+          description: 用户名
+          example: 'Maples7'
+          required: true
+          minLength: 1
+        email:
+          type: string
+          description: 用户邮箱
+          example: 'maples7@163.com'
+          required: true
+        password:
+          type: string
+          description: 登录密码
+          example: '123456'
+          required: true
+        headPic:
+          type: string
+          description: 用户头像地址
+          example: 'http://127.0.0.1:3000/public/maples7.jpg'
+          required: false
+        sex:
+          type: integer
+          description: 性别，0男1女，默认为null
+          example: 1
+          required: false
+          minimum: 0
+          maximum: 1
+        bio:
+          type: string
+          description: 用户简介
+          example: 'forever young, forever on the road'
+          required: false
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "data": "用户名已被注册",
+                  "status": {
+                    "code": -1,
+                    "msg": "api error"
+                  }
+                }
+  /login:
+    post:
+      description: 用户登录
+      queryParameters:
+        account:
+          type: string
+          description: 用户名 或 邮箱
+          required: true
+          example: 'Maples7'
+        password:
+          type: string
+          description: 登录密码
+          example: '123456'
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "data": "登录成功",
+                  "status": {
+                    "code": 0,
+                    "msg": "request success!"
+                  }
+                }
+  /logout:
+    get:
+      description: 用户登出
+      queryParameters:
+        name:
+          type: string
+          description: 用户名（竟然用用户名登出也是醉了=_=）
+          required: true
+          example: 'Maples7'
+
+/weibos:
+  post:
+    description: 发表/转发微博
+    queryParameters:
+      content:
+        type: string
+        description: 微博内容；如果是转发，则为转发部分的内容
+        example: '发一条微博'
+        required: true
+      from:
+        type: string
+        description: “来自于”，客户端信息
+        example: 'RAML api doc'
+        required: true
+      forwardWbId:
+        type: integer
+        description: 转发微博时，直接被转发微博的Id
+        example: 1
+        required: false
+      originalWbId:
+        type: integer
+        description: 转发链顶端的微博id
+        example: 1
+        required: false
+      commentSync:
+        type: integer
+        description: 是否转发微博的同时评论，1是0否
+        example: 1
+        required: false
+        minimum: 0
+        maximum: 1
+
+  /{wbId}:
+    get:
+      description: 获取微博详情
+      queryParameters:
+        needUserDetail:
+          type: boolean
+          description: 是否需要改微博作者的详细信息
+          example: true
+          required: false
+        needOriginalWeiboDetail:
+          type: boolean
+          description: 转发时，是否需要被转发的原始微博的详细信息
+          example: true
+          required: false
+      responses:
+        200:
+          body:
+            application/json:
