@@ -11,16 +11,20 @@ const verifyEmail = require('../helpers/verifyEmail');
 const aCode = require('../tools/code');
 
 /**
- * 用户注册 - POST
- * @param {Object}      req.body
- * @param {String}      req.body.name
- * @param {String}      req.body.email
- * @Param {String}      req.body.password
- * @param {String}      [req.body.headPic]  - 用户头像
- * @param {Number}      [req.body.sex]      - 性别，0男1女，默认为null
- * @param {String}      [req.body.bio]      - 用户简介
- * @param {Object}      res
- * @param {Function}    next
+ * @api {post} /users/register 用户注册
+ * @apiName PostUserRegister
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1 
+ * 
+ * @apiParam {String{1..20}}      name
+ * @apiParam {String{1..50}}      email
+ * @apiParam {String{6..30}}      password
+ * @apiParam {String}             [headPic]     用户头像
+ * @apiParam {Number=0,1}         [sex]         性别，0男1女，默认为null
+ * @apiParam {String{0..200}}     [bio]         用户简介
+ * 
+ * @apiUse OperationSuccess
  */
 exports.register = function (req, res, next) {
   let userObj = {
@@ -46,10 +50,16 @@ exports.register = function (req, res, next) {
 };
 
 /**
- * 用户登录 - POST
- * @param {Object} req.body
- * @param {String} req.body.account - 用户名或邮箱
- * @param {String} req.body.password
+ * @api {post} /users/login 用户登录
+ * @apiName PostUserLogin
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {String{1..50}} account 用户名或邮箱
+ * @apiParam {String{6..30}} password
+ * 
+ * @apiUse OperationSuccess
  */
 exports.login = function (req, res, next) {
   let account = req.body.account;
@@ -68,7 +78,7 @@ exports.login = function (req, res, next) {
   user.login(userObj)
   .then(function (ret) {
     if (!ret) {
-      return res.api('账号或密码错误');
+      return res.api_error('账号或密码错误');
     }
     req.session.user = ret.dataValues;
     return res.api('登录成功');
@@ -77,9 +87,15 @@ exports.login = function (req, res, next) {
 };
 
 /**
- * 用户登出 - GET
- * @param {Object} req.query
- * @param {String} req.query.name
+ * @api {get} /users/logout 用户登出
+ * @apiName GetUserLogout
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {String} name 竟然需要前端传用户名才能登出，也是醉了=_=
+ * 
+ * @apiUse OperationSuccess
  */
 exports.logout = function (req, res, next) {
   req.session.destroy();
@@ -88,15 +104,23 @@ exports.logout = function (req, res, next) {
 };
 
 /**
- * 用户修改信息 - PUT
- * @param {Object} req.body
- * @param {String} req.body.name
- * @param {String} 
+ * @api {put} /users/info 修改用户信息
+ * @apiName PutUserInfo
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {String{1..20}}    [name]      修改后的用户名
+ * @apiParam {String}           [headPic]   头像URL
+ * @apiParam {Boolean}          [sex]       性别
+ * @apiParam {String{0..200}}   [bio]       个人简介
+ * 
+ * @apiUse OperationSuccess
  */
 exports.modifyInfo = function (req, res, next) {
   if (!req.session || !req.session.user) {
     return res.api_error('请登录后再修改信息');
-  }
+  } // check.checkLogin
   // 获取当前用户的用户名作旧名
   let uid = req.session.user.uid;
   return user.modifyInfo(uid, req.body)
@@ -108,12 +132,18 @@ exports.modifyInfo = function (req, res, next) {
 }
 
 /**
- * 发起发送邮箱请求 - GET
+ * @api {get} /users/needmail 发起发送邮箱请求
+ * @apiName GetUserEmail
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiUse OperationSuccess
  */
 exports.sendMail = function (req, res, next) {
   if (!req.session || !req.session.user) {
     return res.api_error('请登录后再修改信息');
-  }
+  } // check.checkLogin
   let name = req.session.user.name;
   let email = req.query.email;
   let code = aCode();
@@ -124,12 +154,18 @@ exports.sendMail = function (req, res, next) {
 }
 
 /**
- * 用户验证邮箱 - PUT
- * @param {Object} req.body
- * @param {String} req.body.id
- * @param {String} req.body.act - 修改/绑定/解绑
- * @param {String} req.body.email - 修改时为新邮箱，绑定/解绑时为旧邮箱
- * @param {String} req.body.code
+ * @api {put} /users/email 用户验证邮箱
+ * @apiName PutUserEmail
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {String} id
+ * @apiParam {String} act='modify','bind','unbind' 修改/绑定/解绑
+ * @apiParam {String{1..50}} email 修改时为新邮箱，绑定/解绑时为旧邮箱
+ * @apiParam {String{6..6}} code 6位验证码   
+ * 
+ * @apiUse OperationSuccess
  */
 exports.modifyEmail = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -165,12 +201,16 @@ exports.modifyEmail = function (req, res, next) {
 }
 
 /**
- * 用户修改密码 - PUT
- * @param {Object} req.body
- * @param {String} req.body.password  - 新密码
- * @param {String} req.body.code
- * @param {Object} req.session.user
- * @param {String} req.session.user.email
+ * @api {put} /users/password 用户修改密码
+ * @apiName PutUserPassword
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {String{6..30}} password  新密码
+ * @apiParam {String{6..6}} code
+ * 
+ * @apiUse OperationSuccess
  */
 exports.modifyPassword = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -190,12 +230,17 @@ exports.modifyPassword = function (req, res, next) {
 }
 
 /**
- * 用户修改关注表 - PUT
- * @param {Object} req.body
- * @param {String} req.body.fans
- * @param {String} req.body.follows
- * @param {String} [req.body.remark] -备注名
- * @param {String} [req.body.group]  -分组数组
+ * @apiIgnore
+ * @api {put} /users/relationship 用户修改关注表
+ * @apiName PutUserRelationship
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {String} fans
+ * @apiParam {String} follows
+ * @apiParam {String} [remark] 备注名
+ * @apiParam {String} [group]  分组数组
  */
 exports.modifyRelationship = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -237,9 +282,9 @@ exports.modifyRelationship = function (req, res, next) {
 
 /**
  * 用户修改微博数 - PUT
- * @param {Object} req.body
- * @param {String} req.body.act
- * @param {String} req.body.name
+ * @apiParam {Object} req.body
+ * @apiParam {String} req.body.act
+ * @apiParam {String} req.body.name
  */
 exports.modifyWeiboCount = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -252,10 +297,17 @@ exports.modifyWeiboCount = function (req, res, next) {
 }
 
 /**
- * 用户新建分组 - POST
- * @param {Object} req.body
- * @param {String} req.body.name
- * @param {String} req.body.description 
+ * @api {post} /users/addgroup 用户新建分组
+ * @apiName PostUserGroup
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {String} name 新分组名
+ * @apiParam {String} [description]
+ * @apiParam {Boolean} [public] 分组公开性
+ * 
+ * @apiUse OperationSuccess
  */
 exports.addGroup = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -274,10 +326,16 @@ exports.addGroup = function (req, res, next) {
 
 
 /**
- * 用户修改分组信息 - PUT
- * @param {Object} req.body
- * @param {Object} req.body.group -分组新信息
- * @param {String} req.body.old -分组旧id
+ * @api {put} /users/modgroup 修改分组信息
+ * @apiName PutUserGroup
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Object} group {"name": 分组新名, "description": 分组新描述, "public": 分组公开性}
+ * @apiParam {Number} old 要被修改的分组id
+ * 
+ * @apiUse OperationSuccess
  */
 exports.modifyGroup = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -303,9 +361,15 @@ exports.modifyGroup = function (req, res, next) {
 }
 
 /**
- * 用户删除分组 - DELETE
- * @param {Object} req.body
- * @param {String} req.body.gid -分组id
+ * @api {put} /users/delgroup 删除分组
+ * @apiName DelUserGroup
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {number} gid 要被删除的分组id
+ * 
+ * @apiUse OperationSuccess
  */
 exports.delGroup = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -317,9 +381,15 @@ exports.delGroup = function (req, res, next) {
 }
 
 /**
- * 用户获取个人信息 - GET
- * @param {Object} req.query
- * @param {Number} req.query.id
+ * @api {get} /users/info 获取用户信息
+ * @apiName GetUserInfo
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Number} id 被查询用户id
+ * 
+ * @apiUse OperationSuccess
  */
 exports.getInfo = function (req, res, next) {
   req.query.uid = parseInt(req.query.uid);
@@ -342,8 +412,8 @@ exports.getInfo = function (req, res, next) {
 
 /**
  * 用户获取关注列表 - GET
- * @param {Object} req.query
- * @param {String} req.query.name
+ * @apiParam {Object} req.query
+ * @apiParam {String} req.query.name
  */
 exports.getFollow = function (req, res, next) {
   return user.getFollow(req.query.name)
@@ -353,8 +423,8 @@ exports.getFollow = function (req, res, next) {
 
 /**
  * 用户获取粉丝列表 - GET
- * @param {Object} req.query
- * @param {String} req.query.name
+ * @apiParam {Object} req.query
+ * @apiParam {String} req.query.name
  */
 exports.getFans = function (req, res, next) {
   return user.getFans(req.query.name)
@@ -364,8 +434,8 @@ exports.getFans = function (req, res, next) {
 
 /**
  * 用户获取分组列表 - GET
- * @param {Object} req.query
- * @param {String} req.query.name
+ * @apiParam {Object} req.query
+ * @apiParam {String} req.query.name
  */
 exports.getGroups = function (req, res, next) {
   let where = {creator: req.query.name};
@@ -379,9 +449,9 @@ exports.getGroups = function (req, res, next) {
 
 /**
  * 用户获取分组描述 - GET
- * @param {Object} req.query
- * @param {String} req.query.name
- * @param {String} req.query.group
+ * @apiParam {Object} req.query
+ * @apiParam {String} req.query.name
+ * @apiParam {String} req.query.group
  */
 exports.getGroupDetail = function (req, res, next) {
   if (!req.session.user) {
@@ -394,9 +464,9 @@ exports.getGroupDetail = function (req, res, next) {
 
 /**
  * 用户获取分组成员 - GET
- * @param {Object} req.query
- * @param {String} req.query.name
- * @param {String} req.query.group
+ * @apiParam {Object} req.query
+ * @apiParam {String} req.query.name
+ * @apiParam {String} req.query.group
  */
 exports.getGroupMember = function (req, res, next) {
   return user.getGroupMember(req.query.name, req.query.group)

@@ -47,6 +47,15 @@
  *          "msg": "request success!"
  *        }
  *      }
+ * @apiSuccessExample {json} Bad-Request
+ *      HTTP/1.1 200 OK
+ *      {
+ *        "data": "用户名已被注册",
+ *        "status": {
+ *          "code": -1,
+ *          "msg": "request success!"
+ *        }
+ *      }
  */
 
 

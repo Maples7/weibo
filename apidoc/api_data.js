@@ -1,5 +1,833 @@
 define({ "api": [
   {
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "req.body",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "req.body.act",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "req.body.name",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "type": "",
+    "url": "",
+    "version": "0.0.0",
+    "filename": "controllers/user.js",
+    "group": "E__Maples7_src_weibo_controllers_user_js",
+    "groupTitle": "E__Maples7_src_weibo_controllers_user_js",
+    "name": ""
+  },
+  {
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "req.query",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "req.query.name",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "type": "",
+    "url": "",
+    "version": "0.0.0",
+    "filename": "controllers/user.js",
+    "group": "E__Maples7_src_weibo_controllers_user_js",
+    "groupTitle": "E__Maples7_src_weibo_controllers_user_js",
+    "name": ""
+  },
+  {
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "req.query",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "req.query.name",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "req.query.group",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "type": "",
+    "url": "",
+    "version": "0.0.0",
+    "filename": "controllers/user.js",
+    "group": "E__Maples7_src_weibo_controllers_user_js",
+    "groupTitle": "E__Maples7_src_weibo_controllers_user_js",
+    "name": ""
+  },
+  {
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "req.query",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "req.query.name",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "type": "",
+    "url": "",
+    "version": "0.0.0",
+    "filename": "controllers/user.js",
+    "group": "E__Maples7_src_weibo_controllers_user_js",
+    "groupTitle": "E__Maples7_src_weibo_controllers_user_js",
+    "name": ""
+  },
+  {
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "req.query",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "req.query.name",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "req.query.group",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "type": "",
+    "url": "",
+    "version": "0.0.0",
+    "filename": "controllers/user.js",
+    "group": "E__Maples7_src_weibo_controllers_user_js",
+    "groupTitle": "E__Maples7_src_weibo_controllers_user_js",
+    "name": ""
+  },
+  {
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "req.query",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "req.query.name",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "type": "",
+    "url": "",
+    "version": "0.0.0",
+    "filename": "controllers/user.js",
+    "group": "E__Maples7_src_weibo_controllers_user_js",
+    "groupTitle": "E__Maples7_src_weibo_controllers_user_js",
+    "name": ""
+  },
+  {
+    "type": "put",
+    "url": "/users/delgroup",
+    "title": "删除分组",
+    "name": "DelUserGroup",
+    "group": "User",
+    "permission": [
+      {
+        "name": "anyone"
+      }
+    ],
+    "version": "0.0.1",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "gid",
+            "description": "<p>要被删除的分组id</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/user.js",
+    "groupTitle": "User",
+    "sampleRequest": [
+      {
+        "url": "http://127.0.0.1:3000/users/delgroup"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "get",
+    "url": "/users/needmail",
+    "title": "发起发送邮箱请求",
+    "name": "GetUserEmail",
+    "group": "User",
+    "permission": [
+      {
+        "name": "anyone"
+      }
+    ],
+    "version": "0.0.1",
+    "filename": "controllers/user.js",
+    "groupTitle": "User",
+    "sampleRequest": [
+      {
+        "url": "http://127.0.0.1:3000/users/needmail"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "get",
+    "url": "/users/info",
+    "title": "获取用户信息",
+    "name": "GetUserInfo",
+    "group": "User",
+    "permission": [
+      {
+        "name": "anyone"
+      }
+    ],
+    "version": "0.0.1",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "id",
+            "description": "<p>被查询用户id</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/user.js",
+    "groupTitle": "User",
+    "sampleRequest": [
+      {
+        "url": "http://127.0.0.1:3000/users/info"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "get",
+    "url": "/users/logout",
+    "title": "用户登出",
+    "name": "GetUserLogout",
+    "group": "User",
+    "permission": [
+      {
+        "name": "anyone"
+      }
+    ],
+    "version": "0.0.1",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": "<p>竟然需要前端传用户名才能登出，也是醉了=_=</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/user.js",
+    "groupTitle": "User",
+    "sampleRequest": [
+      {
+        "url": "http://127.0.0.1:3000/users/logout"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/users/addgroup",
+    "title": "用户新建分组",
+    "name": "PostUserGroup",
+    "group": "User",
+    "permission": [
+      {
+        "name": "anyone"
+      }
+    ],
+    "version": "0.0.1",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": "<p>新分组名</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "description",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "public",
+            "description": "<p>分组公开性</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/user.js",
+    "groupTitle": "User",
+    "sampleRequest": [
+      {
+        "url": "http://127.0.0.1:3000/users/addgroup"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/users/login",
+    "title": "用户登录",
+    "name": "PostUserLogin",
+    "group": "User",
+    "permission": [
+      {
+        "name": "anyone"
+      }
+    ],
+    "version": "0.0.1",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "size": "1..50",
+            "optional": false,
+            "field": "account",
+            "description": "<p>用户名或邮箱</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "size": "6..30",
+            "optional": false,
+            "field": "password",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "filename": "controllers/user.js",
+    "groupTitle": "User",
+    "sampleRequest": [
+      {
+        "url": "http://127.0.0.1:3000/users/login"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/users/register",
+    "title": "用户注册",
+    "name": "PostUserRegister",
+    "group": "User",
+    "permission": [
+      {
+        "name": "anyone"
+      }
+    ],
+    "version": "0.0.1",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "size": "1..20",
+            "optional": false,
+            "field": "name",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "size": "1..50",
+            "optional": false,
+            "field": "email",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "size": "6..30",
+            "optional": false,
+            "field": "password",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "headPic",
+            "description": "<p>用户头像</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "allowedValues": [
+              "0",
+              "1"
+            ],
+            "optional": true,
+            "field": "sex",
+            "description": "<p>性别，0男1女，默认为null</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "size": "0..200",
+            "optional": true,
+            "field": "bio",
+            "description": "<p>用户简介</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/user.js",
+    "groupTitle": "User",
+    "sampleRequest": [
+      {
+        "url": "http://127.0.0.1:3000/users/register"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "put",
+    "url": "/users/email",
+    "title": "用户验证邮箱",
+    "name": "PutUserEmail",
+    "group": "User",
+    "permission": [
+      {
+        "name": "anyone"
+      }
+    ],
+    "version": "0.0.1",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "act",
+            "defaultValue": "modify",
+            "description": "<p>,'bind','unbind' 修改/绑定/解绑</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "size": "1..50",
+            "optional": false,
+            "field": "email",
+            "description": "<p>修改时为新邮箱，绑定/解绑时为旧邮箱</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "size": "6..6",
+            "optional": false,
+            "field": "code",
+            "description": "<p>6位验证码</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/user.js",
+    "groupTitle": "User",
+    "sampleRequest": [
+      {
+        "url": "http://127.0.0.1:3000/users/email"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "put",
+    "url": "/users/modgroup",
+    "title": "修改分组信息",
+    "name": "PutUserGroup",
+    "group": "User",
+    "permission": [
+      {
+        "name": "anyone"
+      }
+    ],
+    "version": "0.0.1",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "group",
+            "description": "<p>{&quot;name&quot;: 分组新名, &quot;description&quot;: 分组新描述, &quot;public&quot;: 分组公开性}</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "old",
+            "description": "<p>要被修改的分组id</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/user.js",
+    "groupTitle": "User",
+    "sampleRequest": [
+      {
+        "url": "http://127.0.0.1:3000/users/modgroup"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "put",
+    "url": "/users/info",
+    "title": "修改用户信息",
+    "name": "PutUserInfo",
+    "group": "User",
+    "permission": [
+      {
+        "name": "anyone"
+      }
+    ],
+    "version": "0.0.1",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "size": "1..20",
+            "optional": true,
+            "field": "name",
+            "description": "<p>修改后的用户名</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "headPic",
+            "description": "<p>头像URL</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "sex",
+            "description": "<p>性别</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "size": "0..200",
+            "optional": true,
+            "field": "bio",
+            "description": "<p>个人简介</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/user.js",
+    "groupTitle": "User",
+    "sampleRequest": [
+      {
+        "url": "http://127.0.0.1:3000/users/info"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "put",
+    "url": "/users/password",
+    "title": "用户修改密码",
+    "name": "PutUserPassword",
+    "group": "User",
+    "permission": [
+      {
+        "name": "anyone"
+      }
+    ],
+    "version": "0.0.1",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "size": "6..30",
+            "optional": false,
+            "field": "password",
+            "description": "<p>新密码</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "size": "6..6",
+            "optional": false,
+            "field": "code",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "filename": "controllers/user.js",
+    "groupTitle": "User",
+    "sampleRequest": [
+      {
+        "url": "http://127.0.0.1:3000/users/password"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
     "type": "delete",
     "url": "/comments/:cmId/favor",
     "title": "给某评论消赞",
@@ -23,6 +851,11 @@ define({ "api": [
         {
           "title": "Success-Response",
           "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
           "type": "json"
         }
       ]
@@ -53,6 +886,11 @@ define({ "api": [
           "title": "Success-Response",
           "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
           "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
         }
       ]
     }
@@ -81,6 +919,11 @@ define({ "api": [
         {
           "title": "Success-Response",
           "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
           "type": "json"
         }
       ]
@@ -266,6 +1109,11 @@ define({ "api": [
           "title": "Success-Response",
           "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
           "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
         }
       ]
     }
@@ -294,6 +1142,11 @@ define({ "api": [
         {
           "title": "Success-Response",
           "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
           "type": "json"
         }
       ]
@@ -371,6 +1224,11 @@ define({ "api": [
           "title": "Success-Response",
           "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
           "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
         }
       ]
     }
@@ -399,6 +1257,11 @@ define({ "api": [
         {
           "title": "Success-Response",
           "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"操作成功\",\n  \"status\": {\n    \"code\": 0,\n    \"msg\": \"request success!\"\n  }\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad-Request",
+          "content": "HTTP/1.1 200 OK\n{\n  \"data\": \"用户名已被注册\",\n  \"status\": {\n    \"code\": -1,\n    \"msg\": \"request success!\"\n  }\n}",
           "type": "json"
         }
       ]
