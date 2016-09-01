@@ -4,12 +4,16 @@ const weibo = require('../services/weibo');
 const status = require('../enums/resStatus');
 
 /**
- * 获取微博详情 - GET
- * @param {Object}      req
- * @param {Number}      [req.query.needUserDetail]          - 真值判断依据来表示是否需要
- * @param {Number}      [req.query.needOriginalWeiboDetail] - 真值判断依据来表示是否需要
- * @param {Object}      res
- * @param {Function}    next
+ * @api {get} /weibos/:wbId 获取微博详情
+ * @apiName GetWeiboDetail
+ * @apiGroup Weibo
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Number=0,1}  [needUserDetail]               是否需要微博作者详情
+ * @apiParam {Number=0,1}  [needOriginalWeiboDetail]      是否需要原微博详情
+ * 
+ * @apiUse GetWeiboDetailSuccess
  */
 exports.getWeiboDetail = (req, res, next) => {
     let wbId = req.params.wbId;
@@ -23,15 +27,19 @@ exports.getWeiboDetail = (req, res, next) => {
 };
 
 /**
- * 发表/转发微博 - POST
- * @param {Object}      req
- * @param {String}      req.body.content        - 微博内容；如果是转发，则为转发部分的内容
- * @param {String}      req.body.from           - “来自于”，客户端信息
- * @param {Number}      [req.body.forwardWbId]  - 转发微博时，直接被转发微博的Id
- * @param {Number}      [req.body.originalWbId] - 转发链顶端的微博id
- * @param {Number}      [req.body.commentSync]  - 是否转发微博的同时评论，1是0否
- * @param {Object}      res
- * @param {Function}    next
+ * @api {post} /weibos 发表/转发微博
+ * @apiName PostWeibo
+ * @apiGroup Weibo
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {String{1..500}}  content         微博内容；如果是转发，则为转发部分的内容
+ * @apiParam {String{1..50}}   from            “来自于”，客户端信息
+ * @apiParam {Number}          [forwardWbId]   转发微博时，直接被转发微博的Id
+ * @apiParam {Number}          [originalWbId]  转发链顶端的微博id
+ * @apiParam {Number=0,1}      [commentSync]   是否转发微博的同时评论，1是0否
+ * 
+ * @apiUse OperationSuccess
  */
 exports.addWeibo = (req, res, next) => {
     let wbInfo = {
@@ -43,24 +51,28 @@ exports.addWeibo = (req, res, next) => {
         return res.api(...status.lackParams);
     }
 
-    wbInfo.forwardId = req.body.forwardId;
-    wbInfo.originalId = req.body.originalId;
+    wbInfo.forwardId = +req.body.forwardId;
+    wbInfo.originalId = +req.body.originalId;
     wbInfo.author = req.session.user.name;
+    wbInfo.authorId = req.session.user.id;
 
     if (!wbInfo.forwardId !== !wbInfo.originalId) {     // XOR
         return res.api(...status.xorParams);
     }
 
     return weibo.addWeibo(wbInfo, {
-        commentSync: req.body.commentSync
+        commentSync: +req.body.commentSync
     }).then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
 /**
- * 删除微博 - DELETE
- * @param {Object}      req
- * @param {Object}      res
- * @param {Function}    next
+ * @api {delete} /weibos/:wbId 删除微博
+ * @apiName DeleteWeibo
+ * @apiGroup Weibo
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiUse OperationSuccess
  */
 exports.deleteWeibo = (req, res, next) => {
     let wbId = req.params.wbId;
@@ -71,14 +83,18 @@ exports.deleteWeibo = (req, res, next) => {
 };
 
 /**
- * 发表评论 - POST
- * @param {Object}      req
- * @param {String}      req.body.content        - 评论内容
- * @param {String}      req.body.from           - “来自于”，客户端信息
- * @param {Number}      [req.body.replyId]      - 被回复评论的Id，不传值表明为简单评论
- * @param {Number}      [req.body.forwardSync]  - 是否同时“转发”，1是0否
- * @param {Object}      res
- * @param {Function}    next
+ * @api {post} /weibos/:wbId/comments 发表评论
+ * @apiName PostComment
+ * @apiGroup Weibo
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {String{1..500}}   content        评论内容
+ * @apiParam {String{1..50}}    from           “来自于”，客户端信息
+ * @apiParam {Number}           [replyId]      被回复评论的Id，不传值表明为简单评论
+ * @apiParam {Number=0,1}       [forwardSync]  是否同时“转发”
+ * 
+ * @apiUse OperationSuccess
  */
 exports.addComment = (req, res, next) => {
     let cmInfo = {
@@ -100,17 +116,19 @@ exports.addComment = (req, res, next) => {
 };
 
 /**
- * 获取某一微博的评论列表 - GET
+ * @api {get} /weibos/:wbId/comments 获取某一微博的评论列表 
+ * @apiName GetComments
+ * @apiGroup Weibo
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * @apiDescription 注意：只有当offset为0时才会获取热门评论
  * 
- * 注意：只有当 req.query.offset 为 0 时才会获取热门评论
+ * @apiParam {Number}      [limit=20]           对于所有评论的单次请求条数
+ * @apiParam {Number}      [offset=0]           对于所有评论的偏移量
+ * @apiParam {Number}      [hotLimit=5]         对于热门评论的单次请求条数
+ * @apiParam {Number}      [hotOffset]          对于热门评论的偏移量
  * 
- * @param {Object}      req
- * @param {Number}      [req.query.limit]       - 对于所有评论的单次请求条数，默认为 20
- * @param {Number}      [req.query.offset]      - 对于所有评论的偏移量，默认为 0
- * @param {Number}      [req.query.hotLimit]    - 对于热门评论的单次请求条数，默认为 5
- * @param {Number}      [req.query.hotOffset]   - 对于热门评论的偏移量，默认为 0
- * @param {Object}      res
- * @param {Function}    next
+ * 
  */
 exports.getCommentList = (req, res, next) => {
     let wbId = req.params.wbId;
@@ -126,10 +144,13 @@ exports.getCommentList = (req, res, next) => {
 };
 
 /**
- * 给某微博点赞 - POST
- * @param {Object}      req
- * @param {Object}      res
- * @param {Function}    next
+ * @api {post} /weibos/:wbId/favor 给微博点赞
+ * @apiName PostWeiboFavor
+ * @apiGroup Weibo
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiUse OperationSuccess
  */
 exports.addWeiboFavor = (req, res, next) => {
     let wbId = req.params.wbId;
@@ -140,10 +161,13 @@ exports.addWeiboFavor = (req, res, next) => {
 };
 
 /**
- * 给某微博消赞 - DELETE
- * @param {Object}      req
- * @param {Object}      res
- * @param {Function}    next
+ * @api {delete} /weibos/:wbId/favor 给微博消赞
+ * @apiName DeleteWeiboFavor
+ * @apiGroup Weibo
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiUse OperationSuccess
  */
 exports.deleteWeiboFavor = (req, res, next) => {
     let wbId = req.params.wbId;
@@ -154,10 +178,13 @@ exports.deleteWeiboFavor = (req, res, next) => {
 };
 
 /**
- * 给某评论点赞 - POST
- * @param {Object}      req
- * @param {Object}      res
- * @param {Function}    next
+ * @api {post} /comments/:cmId/favor 给某评论点赞
+ * @apiName PostCommentFavor
+ * @apiGroup Weibo
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiUse OperationSuccess
  */
 exports.addCommentFavor = (req, res, next) => {
     let cmId = req.params.cmId;
@@ -168,10 +195,13 @@ exports.addCommentFavor = (req, res, next) => {
 };
 
 /**
- * 给某评论消赞 - DELETE
- * @param {Object}      req
- * @param {Object}      res
- * @param {Function}    next
+ * @api {delete} /comments/:cmId/favor 给某评论消赞
+ * @apiName DeleteCommentFavor
+ * @apiGroup Weibo
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiUse OperationSuccess
  */
 exports.deleteCommentFavor = (req, res, next) => {
     let cmId = req.params.cmId;

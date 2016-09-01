@@ -57,7 +57,7 @@ module.exports = new class {
                 transaction: options.t || t
             }).tap(() => {
                 return userService.modifyWeiboCount({
-                    name: keyValues.author,
+                    id: wbInfo.authorId,
                     action: 'add',
                     t: options.t || t
                 });

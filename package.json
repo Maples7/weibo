@@ -1,11 +1,12 @@
 {
   "name": "weibo",
   "version": "0.0.1",
+  "description": "RESTful API server for Weibo App",
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
     "test": "mocha ./test",
-    "apidoc": "raml2html ./api_doc/weibo-api.raml > ./api_doc/build/weibo-api.html"
+    "apidoc": "apidoc -i ./controllers -o apidoc/"
   },
   "dependencies": {
     "bluebird": "^3.4.1",
@@ -32,8 +33,11 @@
   "devDependencies": {
     "istanbul": "^0.4.4",
     "mocha": "^3.0.2",
-    "raml2html": "^3.0.0",
     "should": "^11.1.0",
     "supertest": "^2.0.0"
+  },
+  "apidoc": {
+    "url": "http://127.0.0.1:3000",
+    "sampleUrl": "http://127.0.0.1:3000"
   }
 }
