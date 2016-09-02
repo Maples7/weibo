@@ -1,8 +1,9 @@
 const gulp = require('gulp');
-const raml2html = require('gulp-raml2html');
+const apidoc = require('gulp-apidoc');
 
-gulp.task('apidoc', function() {
-  return gulp.src('./api_doc/weibo-api.raml')
-    .pipe(raml2html())
-    .pipe(gulp.dest('./api_doc/build'));
+gulp.task('apidoc', function(done){
+  apidoc({
+    src: "controllers/",
+    dest: "../../blog/source/weibo"
+  }, done);
 });
