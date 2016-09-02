@@ -7,7 +7,7 @@ const config = require('config');
 const expressSession = require('express-session');
 const sessionStore = require('connect-redis')(expressSession);
 const _ = require('lodash');
-const res_api = require('res.api');
+const res_api = require('./middlewares/res_api');
 
 const routes = require('./routes');
 const db = require('./models');
@@ -15,12 +15,11 @@ const notFound = require('./middlewares/notFound');
 
 const app = express();
 
+app.use(res_api);
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(require('cors')());
-app.use(res_api);
 // app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(expressSession(_.merge(config.get('session'), {
@@ -35,6 +34,13 @@ db.sync({force: config.get('mysql.forceSync')}).catch(err => {
     console.log('MySQL sync with Sequelize is failure: ', err);
     process.exit(1);
 });
+
+app.use(require('cors')({
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+    optionsSuccessStatus: 200
+}));
 
 app.use(routes);
 app.use(notFound);
