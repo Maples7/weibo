@@ -1,4 +1,4 @@
-### /users/register
+### /register
 注册 - POST
 
 传入(body)：    
@@ -22,7 +22,7 @@ password: 密码 String
   }    
 }
 
-### /users/login
+### /login
 登录 - POST
 
 传入(body)：    
@@ -45,7 +45,7 @@ password: 密码 String
   }
 }
 
-## /users/logout
+## /logout
 登出 - GET
 
 返回：
@@ -57,16 +57,13 @@ password: 密码 String
   }
 }
 
-## /users/info
-获取用户信息 - GET
-
-传入(query):    
-uid: 被查询用户uid Number
+## /users/:id
+通过id获取用户信息 - GET
 
 返回：
 {
   "data": {
-    "uid": 1,
+    "id": 1,
     "name": "bob",
     "email": "bobmingxie@163.com",
     "password": "e10adc3949ba59abbe56e057f20f883e",
@@ -86,7 +83,33 @@ uid: 被查询用户uid Number
 }     
 * 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注
 
-## /users/info
+## /users/name/:name    
+通过name获取用户信息 - GET
+
+返回：
+{
+  "data": {
+    "id": 1,
+    "name": "bob",
+    "email": "bobmingxie@163.com",
+    "password": "e10adc3949ba59abbe56e057f20f883e",
+    "headPic": "",
+    "sex": true,
+    "bio": "Hello World",
+    "fansCount": 0,
+    "followCount": 15,
+    "weiboCount": 0,
+    "createTime": 1471867541932,
+    "emailConfirm": false
+  },
+  "status": {
+    "code": 0,
+    "msg": "request success!"
+  }
+}     
+* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注
+
+## /users/:id
 修改用户信息 - PUT
 （需要登录）
 
@@ -157,7 +180,7 @@ code: 6位验证码 Number （绑定/解绑时需要）
   }
 }
 
-## /users/needmail    
+## /users/email    
 发送验证邮件 - GET    
 （需要登录）
 

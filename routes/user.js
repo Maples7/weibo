@@ -8,33 +8,35 @@ const check = require('../middlewares/check');
 
 const router = module.exports = express.Router();
 
-router.post('/users/register', user.register);
-router.post('/users/login', user.login);
-router.get('/users/logout', user.logout);
+router.post('/register', user.register);
+router.post('/login', user.login);
+router.get('/logout', user.logout);
 
-// 修改个人信息
-router.put('/users/info', user.modifyInfo);
-// 关注、分组、拉黑相关，相应计数改变
-router.put('/users/relationship', user.modifyRelationship);
+// 个人信息
+router.get('/users/:id(\\+d)', user.getInfo);
+router.get('/users/name/:name', user.getInfoByName);
+router.put('/users/:id', user.modifyInfo);
+
+// 邮箱与密码
+router.get('/users/email', user.sendMail);
+router.put('/users/email', user.modifyEmail);
+router.put('/users/password', user.modifyPassword);
 // 发布/删除微博，计数改变
 router.put('/users/weibocount', user.modifyWeiboCount);
-// 修改分组信息
-router.put('/users/modgroup', user.modifyGroup);
-// 新建分组
-router.post('/users/addgroup', user.addGroup);
-// 删除分组
-router.get('/users/delgroup', user.delGroup);
 
-router.get('/users/info', user.getInfo);
-router.get('/users/follow', user.getFollow);
-router.get('/users/fans', user.getFans);
-router.get('/users/groups', user.getGroups);
-router.get('/users/groupdetail', user.getGroupDetail);
-router.get('/users/groupmember', user.getGroupMember);
+// 分组
+router.post('/users/:id/group', user.addGroup);
+router.put('/users/:id/group/:gid', user.modifyGroup);
+router.delete('/users/:id/group/:gid', user.delGroup);
+router.get('/users/:id/group/:gid', user.getGroupDetail);
+router.get('/users/:id/groupmember/:gid', user.getGroupMember);
+router.get('/users/:id/groups', user.getGroups);
 
-// 发送验证邮件
-router.get('/users/needmail', user.sendMail);
-// 修改(验证/更换)邮箱
-router.put('/users/email', user.modifyEmail);
-// 修改密码
-router.put('/users/password', user.modifyPassword);
+
+// 关系图图谱
+router.put('/users/:id/relationship', user.modifyRelationship);
+router.get('/users/:id/follow', user.getFollow);
+router.get('/users/:id/fans', user.getFans);
+ // TO-DO
+router.get('.users/:id/comfollow', user.getCommonFollow);
+router.get('/users/:id/comfans', user.getCommonFans);

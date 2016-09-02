@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => sequelize.define('Relationship', {
-  rid: {
+  id: {
     allowNull: false,
     type: DataTypes.INTEGER(100),
     autoIncrement: true,

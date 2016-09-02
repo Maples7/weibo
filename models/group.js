@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => sequelize.define('Group', {
-  gid: {
+  id: {
     allowNull: false,
     type: DataTypes.INTEGER(100),
     autoIncrement: true,
