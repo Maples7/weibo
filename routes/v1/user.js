@@ -3,8 +3,8 @@
  */
 const express = require('express');
 
-const user = require('../controllers/user');
-const check = require('../middlewares/check');
+const user = require('../../controllers/user');
+const check = require('../../middlewares/check');
 
 const router = module.exports = express.Router();
 

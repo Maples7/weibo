@@ -1,4 +1,5 @@
 const express = require('express');
 const router = module.exports = express.Router();
 
-router.use('/v1', require('./v1'));
+router.use(require('./weibo'));
+router.use(require('./user'));

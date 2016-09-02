@@ -3,9 +3,9 @@
  */
 const express = require('express');
 
-const weibo = require('../controllers/weibo');
-const weiboList = require('../controllers/weiboList');
-const check = require('../middlewares/check');
+const weibo = require('../../controllers/weibo');
+const weiboList = require('../../controllers/weiboList');
+const check = require('../../middlewares/check');
 
 const router = module.exports = express.Router();
 
