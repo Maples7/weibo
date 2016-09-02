@@ -3,7 +3,7 @@ const apidoc = require('gulp-apidoc');
 
 gulp.task('apidoc', function(done){
   apidoc({
-    src: "controllers/",
+    src: "./controllers/",
     dest: "../../blog/public/weibo"
   }, done);
 });

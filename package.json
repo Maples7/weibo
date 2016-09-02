@@ -37,8 +37,5 @@
     "mocha": "^3.0.2",
     "should": "^11.1.0",
     "supertest": "^2.0.0"
-  },
-  "apidoc": {
-    "sampleUrl": "http://127.0.0.1:3000"
   }
 }

@@ -1,0 +1,7 @@
+{
+    "name": "Weibo API Document",
+    "version": "0.0.1",
+    "description": "A RESTful API server for Weibo APP",
+    "title": "Weibo API",
+    "sampleUrl": "http://127.0.0.1:3000"
+}

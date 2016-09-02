@@ -130,7 +130,7 @@ exports.addComment = (req, res, next) => {
  * @apiParam {Number}      [hotLimit=5]         对于热门评论的单次请求条数
  * @apiParam {Number}      [hotOffset=0]        对于热门评论的偏移量
  * 
- * 
+ * @apiUse GetCommentsSuccess
  */
 exports.getCommentList = (req, res, next) => {
     let wbId = req.params.wbId;
