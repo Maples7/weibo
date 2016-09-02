@@ -12,16 +12,13 @@ module.exports = new class {
         return db.models.Weibo.findById(wbId, {raw: true})
             .tap(wbObj => {
                 if (options.needUserDetail) {
-                    return userService.getInfoByName(options.name)
+                    return userService.getInfoByName(wbObj.author)
                         .then(userInfo => wbObj.author = userInfo);
                 }
             }).tap(wbObj => {
                 if (wbObj) {
                     if (wbObj.originalId && options.needOriginalWeiboDetail) {
                         return this.getWeiboBaseInfo(wbObj.originalId).then(wbBaseInfo => {
-
-                            console.log(wbBaseInfo);
-
                             wbObj.originalWeibo = wbBaseInfo;
                             delete wbObj.originalId;
                         });

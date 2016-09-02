@@ -17,10 +17,8 @@ const status = require('../enums/resStatus');
  */
 exports.getWeiboDetail = (req, res, next) => {
     let wbId = req.params.wbId;
-    let name = req.session.user.name;
 
     return weibo.getWeiboDetail(wbId, {
-        name: name,
         needUserDetail: +req.query.needUserDetail,
         needOriginalWeiboDetail: +req.query.needOriginalWeiboDetail
     }).then(data => res.api(data)).catch(err => res.api_error(err.message));
@@ -30,7 +28,7 @@ exports.getWeiboDetail = (req, res, next) => {
  * @api {post} /weibos 发表/转发微博
  * @apiName PostWeibo
  * @apiGroup Weibo
- * @apiPermission anyone
+ * @apiPermission LoginUser
  * @apiVersion 0.0.1
  * 
  * @apiParam {String{1..500}}  content         微博内容；如果是转发，则为转发部分的内容
@@ -71,7 +69,7 @@ exports.addWeibo = (req, res, next) => {
  * @api {delete} /weibos/:wbId 删除微博
  * @apiName DeleteWeibo
  * @apiGroup Weibo
- * @apiPermission anyone
+ * @apiPermission LoginUser
  * @apiVersion 0.0.1
  * 
  * @apiUse OperationSuccess
@@ -88,7 +86,7 @@ exports.deleteWeibo = (req, res, next) => {
  * @api {post} /weibos/:wbId/comments 发表评论
  * @apiName PostComment
  * @apiGroup Weibo
- * @apiPermission anyone
+ * @apiPermission LoginUser
  * @apiVersion 0.0.1
  * 
  * @apiParam {String{1..500}}   content        评论内容
@@ -149,7 +147,7 @@ exports.getCommentList = (req, res, next) => {
  * @api {post} /weibos/:wbId/favor 给微博点赞
  * @apiName PostWeiboFavor
  * @apiGroup Weibo
- * @apiPermission anyone
+ * @apiPermission LoginUser
  * @apiVersion 0.0.1
  * 
  * @apiUse OperationSuccess
@@ -166,7 +164,7 @@ exports.addWeiboFavor = (req, res, next) => {
  * @api {delete} /weibos/:wbId/favor 给微博消赞
  * @apiName DeleteWeiboFavor
  * @apiGroup Weibo
- * @apiPermission anyone
+ * @apiPermission LoginUser
  * @apiVersion 0.0.1
  * 
  * @apiUse OperationSuccess
@@ -183,7 +181,7 @@ exports.deleteWeiboFavor = (req, res, next) => {
  * @api {post} /comments/:cmId/favor 给某评论点赞
  * @apiName PostCommentFavor
  * @apiGroup Weibo
- * @apiPermission anyone
+ * @apiPermission LoginUser
  * @apiVersion 0.0.1
  * 
  * @apiUse OperationSuccess
@@ -200,7 +198,7 @@ exports.addCommentFavor = (req, res, next) => {
  * @api {delete} /comments/:cmId/favor 给某评论消赞
  * @apiName DeleteCommentFavor
  * @apiGroup Weibo
- * @apiPermission anyone
+ * @apiPermission LoginUser
  * @apiVersion 0.0.1
  * 
  * @apiUse OperationSuccess

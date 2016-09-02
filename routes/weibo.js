@@ -13,11 +13,11 @@ const router = module.exports = express.Router();
 
 // 单条微博相关
 
-router.get('/weibos/:wbId', check.checkLogin, weibo.getWeiboDetail);
+router.get('/weibos/:wbId', weibo.getWeiboDetail);
 router.post('/weibos', check.checkLogin, weibo.addWeibo);
 router.delete('/weibos/:wbId', check.checkLogin, weibo.deleteWeibo);
 
-router.get('/weibos/:wbId/comments', check.checkLogin, weibo.getCommentList);
+router.get('/weibos/:wbId/comments', weibo.getCommentList);
 router.post('/weibos/:wbId/comments', check.checkLogin, weibo.addComment);
 router.post('/comments/:cmId/favor', check.checkLogin, weibo.addCommentFavor);
 router.delete('/comments/:cmId/favor', check.checkLogin, weibo.deleteCommentFavor);

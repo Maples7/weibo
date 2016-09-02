@@ -53,7 +53,7 @@ exports.register = function (req, res, next) {
 };
 
 /**
- * @api {post} /users/login 用户登录
+ * @api {post} /login 用户登录
  * @apiName PostUserLogin
  * @apiGroup User
  * @apiPermission anyone
