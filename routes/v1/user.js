@@ -13,7 +13,7 @@ router.post('/login', user.login);
 router.get('/logout', user.logout);
 
 // 个人信息
-router.get('/users/:id(\\+d)', user.getInfo);
+router.get('/users/:id(\\d+)', user.getInfo);
 router.get('/users/name/:name', user.getInfoByName);
 router.put('/users/:id', user.modifyInfo);
 
