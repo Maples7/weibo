@@ -9,16 +9,19 @@ module.exports = new class {
      * 获取微博的详细信息
      */
     getWeiboDetail(wbId, options = {}) {
-        return db.models.Weibo.findById(wbId)
+        return db.models.Weibo.findById(wbId, {raw: true})
             .tap(wbObj => {
                 if (options.needUserDetail) {
-                    return userService.getInfo(options.name)
+                    return userService.getInfoByName(options.name)
                         .then(userInfo => wbObj.author = userInfo);
                 }
             }).tap(wbObj => {
                 if (wbObj) {
                     if (wbObj.originalId && options.needOriginalWeiboDetail) {
-                        this.getWeiboBaseInfo(wbObj.originalId).then(wbBaseInfo => {
+                        return this.getWeiboBaseInfo(wbObj.originalId).then(wbBaseInfo => {
+
+                            console.log(wbBaseInfo);
+
                             wbObj.originalWeibo = wbBaseInfo;
                             delete wbObj.originalId;
                         });
@@ -31,7 +34,7 @@ module.exports = new class {
      * 获取微博最基本的信息，包括 id, content, author
      */
     getWeiboBaseInfo(wbId) {
-        return db.models.Weibo.findById(wbId).then(wbDetail => ({
+        return db.models.Weibo.findById(wbId, {raw: true}).then(wbDetail => ({
             id: wbDetail.id,
             author: wbDetail.author,
             content: wbDetail.content
@@ -94,7 +97,7 @@ module.exports = new class {
                     transaction: t
                 });
             }).spread(affectedCount => 
-                affectedCount ? '删除成功' : '删除失败'
+                affectedCount ? '删除成功' : Promise.reject('删除失败')
             );
         });
     }
@@ -149,7 +152,7 @@ module.exports = new class {
      * 获取单条评论详情
      */
     getCommentDetail(cmId) {
-        return db.models.Comment.findById(cmId);
+        return db.models.Comment.findById(cmId, {raw: true});
     }
 
     /**

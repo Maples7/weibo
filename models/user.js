@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => sequelize.define('User', {
-    uid: {
+    id: {
         allowNull: false,
         unique: true,
         type: DataTypes.INTEGER.UNSIGNED,

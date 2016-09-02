@@ -21,8 +21,8 @@ exports.getWeiboDetail = (req, res, next) => {
 
     return weibo.getWeiboDetail(wbId, {
         name: name,
-        needUserDetail: req.query.needUserDetail,
-        needOriginalWeiboDetail: req.query.needOriginalWeiboDetail
+        needUserDetail: +req.query.needUserDetail,
+        needOriginalWeiboDetail: +req.query.needOriginalWeiboDetail
     }).then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
@@ -51,10 +51,12 @@ exports.addWeibo = (req, res, next) => {
         return res.api(...status.lackParams);
     }
 
-    wbInfo.forwardId = +req.body.forwardId;
-    wbInfo.originalId = +req.body.originalId;
+    wbInfo.forwardId = +req.body.forwardWbId;
+    wbInfo.originalId = +req.body.originalWbId;
     wbInfo.author = req.session.user.name;
     wbInfo.authorId = req.session.user.id;
+
+    console.log(wbInfo);
 
     if (!wbInfo.forwardId !== !wbInfo.originalId) {     // XOR
         return res.api(...status.xorParams);
@@ -126,7 +128,7 @@ exports.addComment = (req, res, next) => {
  * @apiParam {Number}      [limit=20]           对于所有评论的单次请求条数
  * @apiParam {Number}      [offset=0]           对于所有评论的偏移量
  * @apiParam {Number}      [hotLimit=5]         对于热门评论的单次请求条数
- * @apiParam {Number}      [hotOffset]          对于热门评论的偏移量
+ * @apiParam {Number}      [hotOffset=0]        对于热门评论的偏移量
  * 
  * 
  */

@@ -37,6 +37,7 @@ exports.addGroup = addGroup;
 exports.modifyGroup = modifyGroup;
 exports.delGroup = delGroup;
 exports.getInfo = getInfo;
+exports.getInfoByName = getInfoByName;
 exports.getRemark = getRemark;
 exports.getFollow = getFollow;
 exports.getFans = getFans;
@@ -436,7 +437,7 @@ function unblack(info) {
  */
 function modifyWeiboCount(param) {
   return db.User.findOne({
-    where: {uid: param.uid},
+    where: {id: param.id},
     transaction: param.t
   })
   .then(function (ret) {
@@ -548,6 +549,14 @@ function getInfo(id) {
   return db.User.findOne({where: {id: id}})
   .then(ret => ret.dataValues)
   .catch(err => err);
+}
+
+/**
+ * getInfoByName 根据用户名获取个人信息
+ */
+function getInfoByName(name) {
+  return db.User.findOne({where: {name: name}})
+  .then(ret => ret.dataValues);
 }
 
 /**
