@@ -38,7 +38,6 @@ db.sync({force: config.get('mysql.forceSync')}).catch(err => {
 app.use(require('cors')({
     origin: true,
     credentials: true,
-    methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
     optionsSuccessStatus: 200
 }));
 

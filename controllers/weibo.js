@@ -156,7 +156,7 @@ exports.addWeiboFavor = (req, res, next) => {
     let wbId = req.params.wbId;
     let user = req.session.user.name;
 
-    return weibo.addFavor('Weibo', wbId, user)
+    return weibo.addFavor('weibo', wbId, user)
         .then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
@@ -173,7 +173,7 @@ exports.deleteWeiboFavor = (req, res, next) => {
     let wbId = req.params.wbId;
     let user = req.session.user.name;
 
-    return weibo.deleteFavor('Weibo', wbId, user)
+    return weibo.deleteFavor('weibo', wbId, user)
         .then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
@@ -190,7 +190,7 @@ exports.addCommentFavor = (req, res, next) => {
     let cmId = req.params.cmId;
     let user = req.session.user.name;
 
-    return weibo.addFavor('Comment', cmId, user)
+    return weibo.addFavor('comment', cmId, user)
         .then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
@@ -207,6 +207,6 @@ exports.deleteCommentFavor = (req, res, next) => {
     let cmId = req.params.cmId;
     let user = req.session.user.name;
 
-    return weibo.deleteFavor('Comment', cmId, user)
+    return weibo.deleteFavor('comment', cmId, user)
         .then(data => res.api(data)).catch(err => res.api_error(err.message));
 };

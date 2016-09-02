@@ -1,19 +1,21 @@
-module.exports = (sequelize, DataTypes) => sequelize.define('WeiboFavor', {
+module.exports = (sequelize, DataTypes) => sequelize.define('Favor', {
     id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         unique: true,
         type: DataTypes.INTEGER.UNSIGNED,
-        comment: '微博点赞记录id'
+        comment: '点赞记录id'
     },
-    weiboId: {
+    itemId: {
         allowNull: false,
         type: DataTypes.INTEGER.UNSIGNED,
-        references: {model: 'Weibos', key: 'id'},
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
-        comment: '被点赞的微博id'
+        comment: '被点赞的item Id'
+    },
+    itemType: {
+        allowNull: false,
+        type: DataTypes.ENUM('weibo', 'comment'),
+        comment: '微博还是评论'
     },
     userName: {
         allowNull: false,
@@ -32,8 +34,8 @@ module.exports = (sequelize, DataTypes) => sequelize.define('WeiboFavor', {
 }, {
     timestamps: false,
     indexes: [{
-        name: 'uniq_weiboId_userName',
-        fields: ['weiboId', 'userName'],
+        name: 'uniq_itemId_itemType_userName',
+        fields: ['itemId', 'itemType', 'userName'],
         unique: true
     }]
 });

@@ -22,8 +22,7 @@ sequelize.authenticate().then(msg => {
     './weibo',
     './user',
     './comment',
-    './comment_favor',
-    './weibo_favor',
+    './favors',
     './relationship',
     './group',
     './code'

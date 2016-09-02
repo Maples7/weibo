@@ -94,7 +94,9 @@ module.exports = new class {
                     transaction: t
                 });
             }).spread(affectedCount => 
-                affectedCount ? '删除成功' : Promise.reject('删除失败')
+                affectedCount ? 
+                    '删除成功' : 
+                    Promise.reject(new Error('删除失败'))
             );
         });
     }
@@ -188,17 +190,25 @@ module.exports = new class {
      */
     addFavor(table, id, user) {
         return db.transaction(t =>
-            db.models[table + 'Favor'].upsert({
-                [table.toLowerCase() + 'Id']: id, 
-                userName: user
-            }, { transaction: t }).then(created => {
+            db.models.Favor.findOrCreate({
+                raw: true,
+                where: {
+                    itemId: id, 
+                    userName: user,
+                    itemType: table
+                },
+                defaults: { createTime: Date.now() },
+                transaction: t
+            }).spread((instance, created) => {
                 if (created) {
                     return this.updateFavorCount(table, id, '+ 1', {t})
                         .then(result =>
-                            result.affectedRows ? '点赞成功' : Promise.reject('点赞失败') 
+                            result.affectedRows ? 
+                                '点赞成功' : 
+                                Promise.reject(new Error('点赞失败')) 
                         )
                 } else {
-                    return Promise.reject('已经赞过');
+                    return Promise.reject(new Error('已经赞过'));
                 }
             })
         );
@@ -209,20 +219,23 @@ module.exports = new class {
      */
     deleteFavor(table, id, user) {
         return db.transaction(t =>
-            db.models[table + 'Favor'].destroy({
+            db.models.Favor.destroy({
                 where: {
-                    [table.toLowerCase() + 'Id']: id, 
-                    userName: user
+                    itemId: id, 
+                    userName: user,
+                    itemType: table
                 },
                 transaction: t
             }).then(deletedRows => {
                 if (deletedRows) {
                     return this.updateFavorCount(table, id, '- 1', {t})
                         .then(result =>
-                            result.affectedRows ? '消赞成功' : Promise.reject('消赞失败')
+                            result.affectedRows ? 
+                                '消赞成功' : 
+                                Promise.reject(new Error('消赞失败'))
                         )
                 } else {
-                    return Promise.reject('尚未点赞');
+                    return Promise.reject(new Error('尚未点赞'));
                 }
             })
         );
@@ -232,7 +245,7 @@ module.exports = new class {
      * 更新微博/评论点赞数
      */
     updateFavorCount(table, id, operation, options) {
-        table = table.toLowerCase() + 's';
+        table = table + 's';
         let sqlStr = '' +
             'UPDATE ' + table + ' ' +
             'SET favorCount = favorCount ' + operation + ' ' +
