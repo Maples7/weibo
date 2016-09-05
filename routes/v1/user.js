@@ -1,5 +1,5 @@
 /**
- * Created by Maples7 on 2016/7/14.
+ * Created by Ming Tse on 2016/7/14.
  */
 const express = require('express');
 
@@ -13,7 +13,7 @@ router.post('/login', user.login);
 router.get('/logout', user.logout);
 
 // 个人信息
-router.get('/users/:id(\\d+)', user.getInfo);
+router.get('/users/:id', user.getInfo);
 router.get('/users/name/:name', user.getInfoByName);
 router.put('/users/:id', user.modifyInfo);
 
@@ -25,10 +25,10 @@ router.put('/users/password', user.modifyPassword);
 router.put('/users/weibocount', user.modifyWeiboCount);
 
 // 分组
-router.post('/users/:id/group', user.addGroup);
-router.put('/users/:id/group/:gid', user.modifyGroup);
-router.delete('/users/:id/group/:gid', user.delGroup);
-router.get('/users/:id/group/:gid', user.getGroupDetail);
+router.post('/users/group', user.addGroup);
+router.put('/users/group/:gid', user.modifyGroup);
+router.delete('/users/group/:gid', user.delGroup);
+router.get('/users/group/:gid', user.getGroupDetail);
 router.get('/users/:id/groupmember/:gid', user.getGroupMember);
 router.get('/users/:id/groups', user.getGroups);
 

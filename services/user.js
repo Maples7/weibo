@@ -236,20 +236,30 @@ function follow(info) {
     }
   })
   .then(function (ret) {
-    if (ret && ret.group === '黑名单') {
-      throw new Error('你已被对方拉黑，关注失败');
-    }
-    return db.Relationship.findOne({
-      where: {
-        fans: info.fans,
-        follow: info.follow
+    return db.Group.findOne({where: {id: ret.gid}}).then(r => {
+      if (r.dataValues.name === '黑名单') {
+        throw new Error('你已被对方拉黑，关注失败');
       }
-    });
+      return db.Relationship.findOne({
+        where: {
+          fans: info.fans,
+          follow: info.follow
+        }
+      });
+    })
   })
   .then(function (ret) {
-    if (ret.group !== '黑名单') {
-      throw new Error('你已关注对方');
-    }
+    return db.Group.findOne({where: {id: ret.gid}}).then(r => {
+      if (!ret) {
+        return null;
+      }
+      if (r.dataValues.name !== '黑名单') {
+        throw new Error('你已关注对方');
+      }
+      else {
+        throw new Eror('你已拉黑对方，请先将其移出黑名单');
+      }
+    });
   })
   // 更新发起关注方关注数
   .then(() => db.User.findOne({where: {name: info.fans}}))
@@ -257,17 +267,10 @@ function follow(info) {
   // 更新被关注方粉丝数
   .then(() => db.User.findOne({where: {name: info.follow}}))
   .then((ret) => ret.updateAttributes({fansCount: ret.fansCount + 1}))
-  // 若被分到新分组，创建分组
-  .then(() => Promise.each(groups, g => db.Group.findOrCreate({where: {creator: info.fans, name: g}})))
   // 根据分组信息创建关注记录
-  .then(function () {
-    if (_.isEmpty(groups)) {
-      return db.Relationship.create({
-        fans: info.fans,
-        follow: info.follow,
-        remark: info.remark || null
-      });
-    }
+  .then(() => db.Group.findOne({where: {creator: info.id, name: '未分组'}}))
+  .then((one) => {
+    groups.push(one.dataValues.gid); // 将'未分组'纳入分组数列中
     return Promise.each(groups, function (group) {
       db.Relationship.create({
         fans: info.fans,
@@ -275,15 +278,6 @@ function follow(info) {
         remark: info.remark || null,
         group: group
       });
-    });
-  })
-  .then(function () {
-    return db.Relationship.destroy({
-      where: {
-        fans: info.fans,
-        follow: info.follow,
-        group: '黑名单'
-      }
     });
   });
 }
@@ -479,6 +473,9 @@ function addGroup(group, creator) {
     if (!ret[1]) {
       throw new Error('此分组名已存在');
     }
+    else {
+      return ret[0];
+    }
   });
 }
 
@@ -488,7 +485,7 @@ function addGroup(group, creator) {
  * @param {String} oldGroup
  * @param {Object} newGroup
  */
-function modifyGroup(old, creator, group) {
+function modifyGroup(group, creator, gid) {
   return db.Group.findOne({
     where: {
       name: group.name,
@@ -496,13 +493,13 @@ function modifyGroup(old, creator, group) {
     }
   })
   .then(function (ret) {
-    if (ret && old !== group.name) {
+    if (ret && gid !== group.id) {
       throw new Error('分组名已被使用');
     }
     // 更新分组列表里该分组信息
     return db.Group.findOne({
       where: {
-        gid: old,
+        id: gid,
         creator: creator,
         name: {$notIn: ['未分组', '黑名单']}
       }
@@ -524,7 +521,7 @@ function delGroup(gid, creator) {
   return db.Group.destroy({
     where: {
       creator: creator,
-      gid: gid,
+      id: gid,
       name: {$notIn: ['未分组', '黑名单']}
     }
   })
@@ -606,7 +603,22 @@ function getFans(name) {
  */
 function getGroups(where) {
   return db.Group.findAll({where: where})
-  .then(ret => {ret.push('未分组', '黑名单'); return ret;})
+  .then(ret => {
+    if (!where.public) {
+      return Promise.each(ret, (r, i) => {
+        return db.Relationship.findAll({where: {gid: r.id}}).then(result => {
+          r.mem = [];
+          let mem = result.slice(0, 2);
+          for (let j = 0;j < mem.length;j++) {
+            return db.User.find({where: {id: mem[j].follow}}).then(one => {r.mem.push(one)});
+          }
+        });
+      });
+    }
+    else {
+      return ret;
+    }
+  })
   .catch(err => err);
 }
 
@@ -614,7 +626,7 @@ function getGroups(where) {
  * getGroupDetail 获取分组详情
  */
 function getGroupDetail(id, gid) {
-  return db.Group.findOne({where: {gid: gid}})
+  return db.Group.findOne({where: {id: gid}})
   .then(ret => {
     if (!ret) {
       throw new Error('该分组不存在');
@@ -622,7 +634,7 @@ function getGroupDetail(id, gid) {
     if (ret.creator !== id && !ret.public) {
       throw new Error('您无权查看该分组');
     }
-    return ret;
+    return ret.dataValues;
   })
   .catch(err => err);
 }

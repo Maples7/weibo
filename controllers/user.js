@@ -254,9 +254,10 @@ exports.modifyRelationship = function (req, res, next) {
   let action = req.body.act;
   switch (action) {
     case 'follow':
-      if (req.session.user.name === req.body.follow) {
+      if (req.session.user.id === req.body.follow) {
         return res.api('不能关注自己');
       }
+      req.body.id = req.session.user.id;
       return user.follow(req.body)
       .then(ret => res.api('关注成功'))
       .catch(err => res.api_error(err.message));
@@ -346,21 +347,18 @@ exports.modifyGroup = function (req, res, next) {
   if (!req.session || !req.session.user) {
     return res.api_error('请登录后再修改信息');
   }
-  if (!req.body.old) {
-    return res.api_error(...status.lackParams);
-  }
-  if (typeof req.body.group !== 'object') {
+  if (typeof req.body !== 'object') {
     try {
-      req.body.group = JSON.parse(req.body.group);
+      req.body = JSON.parse(req.body);
     }
     catch (err) {
       return res.api_error('请规范传入的分组信息，不接收单引号，属性名请用双引号引出');
     }
   }
-  if (req.body.group.name === '未分组' || req.body.group.name === '黑名单') {
+  if (req.body.name === '未分组' || req.body.name === '黑名单') {
     return res.api_error('不可与固定分组重名');
   }
-  return user.modifyGroup(req.body.old, req.session.user.id, req.body.group)
+  return user.modifyGroup(req.body, req.session.user.id, req.params.gid)
   .then(ret => res.api('修改分组信息成功'))
   .catch(err => res.api_error(err.message));
 }
@@ -380,7 +378,7 @@ exports.delGroup = function (req, res, next) {
   if (!req.session || !req.session.user) {
     return res.api_error('请登录后再修改信息');
   }
-  return user.delGroup(req.query.gid, req.session.user.id)
+  return user.delGroup(req.params.gid, req.session.user.id)
   .then(ret => res.api('删除分组成功'))
   .catch(err => res.api_error(err.message));
 }
@@ -473,7 +471,8 @@ exports.getFans = function (req, res, next) {
  * @apiParam {String} req.query.name
  */
 exports.getGroups = function (req, res, next) {
-  let where = {creator: req.query.name};
+  let id = parseInt(req.params.id);
+  let where = {creator: id};
   if (req.query.name !== req.session.user.name) {
     where.public = true;
   }
@@ -489,10 +488,10 @@ exports.getGroups = function (req, res, next) {
  * @apiParam {String} req.query.group
  */
 exports.getGroupDetail = function (req, res, next) {
-  if (!req.session.user) {
+  if (!req.session || !req.session.user) {
     throw new Error('请登录后查看分组');
   }
-  return user.getGroupDetail(req.session.user.id, req.query.gid)
+  return user.getGroupDetail(req.session.user.id, req.params.gid)
   .then(ret => res.api(ret))
   .catch(err => res.api_error(err.message));
 }

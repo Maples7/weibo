@@ -27,8 +27,14 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Group', {
   public: {
     allowNull: false,
     type: DataTypes.BOOLEAN,
-    defaultValue: true,
+    defaultValue: false,
     comment: '是否公开'
+  },
+  count: {
+    allowNull: false,
+    type: DataTypes.INTEGER.UNSIGNED,
+    defaultValue: 0,
+    comment: '分组内成员数'
   }
   // member: {
   //   allowNull: true,
