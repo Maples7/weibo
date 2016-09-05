@@ -13,17 +13,23 @@ const router = module.exports = express.Router();
 
 // 单条微博相关
 
-router.get('/weibos/:wbId(\\d+)', weibo.getWeiboDetail);
+router.route('/weibos/:wbId(\\d+)')
+    .get(weibo.getWeiboDetail)
+    .delete(check.checkLogin, weibo.deleteWeibo);
 router.post('/weibos', check.checkLogin, weibo.addWeibo);
-router.delete('/weibos/:wbId(\\d+)', check.checkLogin, weibo.deleteWeibo);
 
-router.get('/weibos/:wbId(\\d+)/comments', weibo.getCommentList);
-router.post('/weibos/:wbId(\\d+)/comments', check.checkLogin, weibo.addComment);
-router.post('/comments/:cmId(\\d+)/favor', check.checkLogin, weibo.addCommentFavor);
-router.delete('/comments/:cmId(\\d+)/favor', check.checkLogin, weibo.deleteCommentFavor);
+router.route('/weibos/:wbId(\\d+)/comments')
+    .get(weibo.getCommentList)
+    .post(check.checkLogin, weibo.addComment);
+router.route('/comments/:cmId(\\d+)/favor')
+    .all(check.checkLogin)
+    .post(weibo.addCommentFavor)
+    .delete(weibo.deleteCommentFavor);
 
-router.post('/weibos/:wbId(\\d+)/favor', check.checkLogin, weibo.addWeiboFavor);
-router.delete('/weibos/:wbId(\\d+)/favor', check.checkLogin, weibo.deleteWeiboFavor);
+router.route('/weibos/:wbId(\\d+)/favor')
+    .all(check.checkLogin)
+    .post(weibo.addWeiboFavor)
+    .delete(weibo.deleteWeiboFavor); 
 
 // 微博列表相关
 

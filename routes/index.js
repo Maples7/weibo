@@ -1,4 +1,6 @@
 const express = require('express');
 const router = module.exports = express.Router();
 
-router.use('/v1', require('./v1'));
+const init_cache = require('../middlewares/initCache');
+
+router.use('/v1', init_cache, require('./v1'));
