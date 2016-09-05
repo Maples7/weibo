@@ -4,6 +4,9 @@ const Promise = require('bluebird');
 const userService = require('./user');
 const db = require('../models');
 
+const _getWeiboBaseInfo = Symbol('getWeiboBaseInfo');
+const _updateFavorCount = Symbol('updateFavorCount');
+
 module.exports = new class {
     /**
      * 获取微博的详细信息
@@ -18,7 +21,7 @@ module.exports = new class {
             }).tap(wbObj => {
                 if (wbObj) {
                     if (wbObj.originalId && options.needOriginalWeiboDetail) {
-                        return this.getWeiboBaseInfo(wbObj.originalId).then(wbBaseInfo => {
+                        return this[_getWeiboBaseInfo](wbObj.originalId).then(wbBaseInfo => {
                             wbObj.originalWeibo = wbBaseInfo;
                             delete wbObj.originalId;
                         });
@@ -30,7 +33,7 @@ module.exports = new class {
     /**
      * 获取微博最基本的信息，包括 id, content, author
      */
-    getWeiboBaseInfo(wbId) {
+    [_getWeiboBaseInfo](wbId) {
         return db.models.Weibo.findById(wbId, {raw: true}).then(wbDetail => ({
             id: wbDetail.id,
             author: wbDetail.author,
@@ -201,7 +204,7 @@ module.exports = new class {
                 transaction: t
             }).spread((instance, created) => {
                 if (created) {
-                    return this.updateFavorCount(table, id, '+ 1', {t})
+                    return this[_updateFavorCount](table, id, '+ 1', {t})
                         .then(result =>
                             result.affectedRows ? 
                                 '点赞成功' : 
@@ -228,7 +231,7 @@ module.exports = new class {
                 transaction: t
             }).then(deletedRows => {
                 if (deletedRows) {
-                    return this.updateFavorCount(table, id, '- 1', {t})
+                    return this[_updateFavorCount](table, id, '- 1', {t})
                         .then(result =>
                             result.affectedRows ? 
                                 '消赞成功' : 
@@ -244,7 +247,7 @@ module.exports = new class {
     /**
      * 更新微博/评论点赞数
      */
-    updateFavorCount(table, id, operation, options) {
+    [_updateFavorCount](table, id, operation, options) {
         table = table + 's';
         let sqlStr = '' +
             'UPDATE ' + table + ' ' +
