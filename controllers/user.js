@@ -387,7 +387,7 @@ exports.delGroup = function (req, res, next) {
 
 /**
  * @api {get} /users/:id 通过id获取用户信息
- * @apiName GetUserInfo
+ * @apiName GetUserInfoById
  * @apiGroup User
  * @apiPermission anyone
  * @apiVersion 0.0.1
@@ -417,7 +417,7 @@ exports.getInfo = function (req, res, next) {
 
 /**
  * @api {get} /users/name/:name 通过用户名获取用户信息
- * @apiName GetUserInfo
+ * @apiName GetUserInfoByName
  * @apiGroup User
  * @apiPermission anyone
  * @apiVersion 0.0.1

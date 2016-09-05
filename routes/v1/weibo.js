@@ -16,11 +16,14 @@ const router = module.exports = express.Router();
 router.route('/weibos/:wbId(\\d+)')
     .get(weibo.getWeiboDetail)
     .delete(check.checkLogin, weibo.deleteWeibo);
-router.post('/weibos', check.checkLogin, weibo.addWeibo);
+
+router.route('/weibos')
+    .post(check.checkLogin, weibo.addWeibo);
 
 router.route('/weibos/:wbId(\\d+)/comments')
     .get(weibo.getCommentList)
     .post(check.checkLogin, weibo.addComment);
+
 router.route('/comments/:cmId(\\d+)/favor')
     .all(check.checkLogin)
     .post(weibo.addCommentFavor)
