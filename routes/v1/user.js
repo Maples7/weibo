@@ -29,7 +29,7 @@ router.post('/users/group', user.addGroup);
 router.put('/users/group/:gid', user.modifyGroup);
 router.delete('/users/group/:gid', user.delGroup);
 router.get('/users/group/:gid', user.getGroupDetail);
-router.get('/users/:id/groupmember/:gid', user.getGroupMember);
+router.get('/users/:id/member/:gid', user.getGroupMember);
 router.get('/users/:id/groups', user.getGroups);
 
 

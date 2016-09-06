@@ -81,7 +81,7 @@ password: 密码 String
     "msg": "request success!"
   }
 }     
-* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注
+* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注、及groups属性，值为含分组名及分组id的JSON数组
 
 ## /users/name/:name    
 通过name获取用户信息 - GET
@@ -296,6 +296,10 @@ name: 新分组名 String
   }
 }
 
+## /users/:id/member/:gid    
+分组成员 - GET
+
+
 ## /users/:id/groups
 全部分组 - GET 
 
@@ -331,5 +335,22 @@ name: 新分组名 String
 传入(body):    
 act: 指明操作 'follow' | 'unfollow' | 'remark' | 'black' | 'unblack' | 'regroup' | 'remove'
 [follow: 关注/取关/备注/拉黑/移黑/改组 的对象用户id Number]    
-[fans: 移粉的对象用户id Number]    
-[groups: 关注/改组 的对象分组id Number]
+[fans: 移粉 的对象用户id Number]    
+[groups: 关注/改组 的对象分组id组成的数组 Array]    
+[remark: 备注 的对象备注名 String]
+
+## /users/:id/follow
+全部关注 - GET
+
+
+## /users/:id/fans
+全部粉丝 - GET
+
+
+## /users/:id/comfollow
+共同关注 - GET
+（需要登录）
+
+## /users/:id/comfans
+共同粉丝 - GET
+（需要登录）

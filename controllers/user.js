@@ -251,35 +251,49 @@ exports.modifyRelationship = function (req, res, next) {
   if (!req.session || !req.session.user) {
     return res.api_error('请登录后再修改信息');
   }
+  if (req.session.user.id === req.body.follow || req.session.user.id === req.body.fans) {
+    return res.api_error('不能对自己进行关系操作');
+  }
   let action = req.body.act;
   switch (action) {
     case 'follow':
-      if (req.session.user.id === req.body.follow) {
-        return res.api('不能关注自己');
-      }
-      req.body.id = req.session.user.id;
+      req.body.fans = req.session.user.id;
       return user.follow(req.body)
       .then(ret => res.api('关注成功'))
       .catch(err => res.api_error(err.message));
     case 'unfollow':
+      req.body.fans = req.seesion.user.id;
       return user.unfollow(req.body)
       .then(ret => res.api('取消关注成功'))
       .catch(err => res.api_error(err.message));
     case 'remark':
+      req.body.fans = req.session.user.id;
+      if (req.session.user.id === req.body.follow) {
+        return res.api_error('不能给自己设置备注');
+      }
+      req.body.fans = req.seesion.user.id;
       return user.remark(req.body)
       .then(ret => res.api('修改备注成功'))
       .catch(err => res.api_error(err.message));
     case 'regroup':
+      req.body.fans = req.session.user.id;
       return user.regroup(req.body)
       .then(ret => res.api('编辑分组成功'))
       .catch(err => res.api_error(err.message));
     case 'black':
+      req.body.fans = req.session.user.id;
       return user.black(req.body)
       .then(ret => res.api('拉黑成功'))
       .catch(err => res.api_error(err.message));
     case 'unblack':
+      req.body.fans = req.session.user.id;
       return user.unblack(req.body)
       .then(ret => res.api('解除黑名单成功'))
+      .catch(err => res.api_error(err.message));
+    case 'remove':
+      req.body.follow = req.session.user.id;
+      return user.remove(req.body)
+      .then(ret => res.api('移除粉丝成功'))
       .catch(err => res.api_error(err.message));
     default:
       return res.api(...status.apiNotFound);
@@ -400,9 +414,12 @@ exports.getInfo = function (req, res, next) {
   .then(function (result) {
     if (req.session.user && id !== req.session.user.id) {
       return user.getRemark(req.session.user.id, id)
-      .then(function (remark) {
-        if (remark !== '' && remark !== null) {
-          result.remark = remark;
+      .then(function (results) {
+        if (results.remark !== '' && results.remark !== null) {
+          result.remark = results.remark;
+        }
+        if (results.groups.length) {
+          result.groups = results.groups;
         }
         return result;
       });
