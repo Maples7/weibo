@@ -3,6 +3,8 @@ const Promise = require('bluebird');
 
 const userService = require('./user');
 const db = require('../models');
+const cache = require('../lib/cache');
+const cacheKey = require('../lib/cache/cacheKey');
 
 const _getWeiboBaseInfo = Symbol('getWeiboBaseInfo');
 const _updateFavorCount = Symbol('updateFavorCount');
@@ -13,7 +15,7 @@ module.exports = new class {
      * 获取微博的详细信息
      */
     getWeiboDetail(wbId, options = {}) {
-        return db.models.Weibo.findById(wbId, {raw: true})
+        return cache.wrapAsync(cacheKey.weiboDetail(wbId), () => db.models.Weibo.findById(wbId, {raw: true}))
             .tap(wbObj => {
                 if (options.needUserDetail) {
                     return userService.getInfoByName(wbObj.author)
@@ -118,12 +120,12 @@ module.exports = new class {
         };
 
         return db.transaction(t => {
-            let forwardContent = '';
             return db.models.Comment.create(keyValues, {
                 raw: true,
                 type: db.QueryTypes.RAW,
                 transaction: options.t || t
             }).tap(() => {
+                let forwardContent = '';
                 if (options.forwardSync) {
                     if (keyValues.replyId) {
                         this[_getCommentDetail](keyValues.replyId).then(cmDetail => {
@@ -147,6 +149,8 @@ module.exports = new class {
                         }, {t: t});
                     });
                 }
+            }).tap(() => {
+                // TODO: 评论数 + 1
             }).return('操作成功');
         });
     }
@@ -248,6 +252,7 @@ module.exports = new class {
     /**
      * 更新微博/评论点赞数
      */
+    // TODO: 改成使用 sequelize update 接口
     [_updateFavorCount](table, id, operation, options) {
         table = table + 's';
         let sqlStr = '' +
