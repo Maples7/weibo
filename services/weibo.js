@@ -252,7 +252,6 @@ module.exports = new class {
     /**
      * 更新微博/评论点赞数
      */
-    // TODO: 改成使用 sequelize update 接口
     [_updateFavorCount](table, id, operation, options) {
         table = table + 's';
         let sqlStr = '' +
