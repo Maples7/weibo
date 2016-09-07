@@ -45,6 +45,8 @@ exports.getFans = getFans;
 exports.getGroups = getGroups;
 exports.getGroupDetail = getGroupDetail;
 exports.getGroupMember = getGroupMember;
+exports.getCommonFollow = getCommonFollow;
+exports.getCommonFans = getCommonFans;
 
 /**
  * sendMail 发送邮件
@@ -604,7 +606,7 @@ function getInfoByName(name) {
 }
 
 /**
- * getRemark 获取备注名
+ * getRemark 获取备注名、分组数组
  */
 function getRemark(fans, follow) {
   return db.Relationship.findAll({where: {fans: fans, follow: follow}})
@@ -615,6 +617,9 @@ function getRemark(fans, follow) {
         return db.Group.findOne({where: {creator: fans, id: r.group}})
         .then(one => {
           results.groups.push(one.dataValues);
+          if (one.dataValues.name === '未分组' && ret.dataValues.length > 1) {
+            results.groups.pop();
+          }
           results.remark = r.remark;
         });
       });
@@ -690,4 +695,62 @@ function getGroupMember(name, group) {
   return db.Relationship.findAll({where: {fans: name, group: group}})
   .then(ret => ret)
   .catch(err => err);
+}
+
+/**
+ * getCommonFollow 获取共同关注
+ */
+function getCommonFollow(id, uid, page) {
+  let common = [];
+  let ibid, ubid;
+  return db.Group.findOne({where: {creator: id, name: '黑名单'}})
+  .then(one => {
+    ibid = one.dataValues.id;
+    return db.Group.findOne({where: {creator: uid, name: '黑名单'}});
+  })
+  .then(one => {
+    ubid = one.dataValues.id;
+    return db.Relationship.findAll({where: {fans: id, group: {$ne: ibid}}})
+  })
+  .then(ret => {
+    if (!ret) {
+      return common;
+    }
+    return Promise.each(ret.dataValues, r => db.Relationship.findOne({where: {fans: uid, follow: r.follow, group: {$ne: ubid}}})
+      .then(one => {
+        if (one) {
+          common.push(one.dataValues.follow);
+        }
+        return null;
+      }));
+  });
+}
+
+/**
+ * getCommonFans 获取共同粉丝
+ */
+function getCommonFans(id, uid, page) {
+  let common = [];
+  let ibid, ubid;
+  return db.Group.findOne({where: {creator: id, name: '黑名单'}})
+  .then(one => {
+    ibid = one.dataValues.id;
+    return db.Group.findOne({where: {creator: uid, name: '黑名单'}});
+  })
+  .then(one => {
+    ubid = one.dataValues.id;
+    return db.Relationship.findAll({where: {follow: id, group: {$ne: ibid}}})
+  })
+  .then(ret => {
+    if (!ret) {
+      return common;
+    }
+    return Promise.each(ret.dataValues, r => db.Relationship.findOne({where: {follow: uid, fans: r.fans, group: {$ne: ubid}}})
+      .then(one => {
+        if (one) {
+          common.push(one.dataValues.fans);
+        }
+        return null;
+      }));
+  });
 }

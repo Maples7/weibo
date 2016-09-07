@@ -38,5 +38,5 @@ router.put('/users/:id/relationship', user.modifyRelationship);
 router.get('/users/:id/follow', user.getFollow);
 router.get('/users/:id/fans', user.getFans);
  // TO-DO
-// router.get('.users/:id/comfollow', user.getCommonFollow);
-// router.get('/users/:id/comfans', user.getCommonFans);
+router.get('.users/:id/comfollow', user.getCommonFollow);
+router.get('/users/:id/comfans', user.getCommonFans);

@@ -524,3 +524,49 @@ exports.getGroupMember = function (req, res, next) {
   .then(ret => res.api(ret))
   .catch(err => res.api_error(err.message));
 }
+
+/**
+ * 获取与目标用户的共同关注 - GET
+ */
+exports.getCommonFollow = function (req, res, next) {
+  if (!req.session || !req.session.user) {
+    throw new Error('请登录后查看共同关注');
+  }
+  let id = req.session.user.id;
+  let uid = req.params.id;
+  let page = req.query.page - 1 || 0;
+  let limit = 30;
+  let common = [];
+  return user.getCommonFollow(id, uid, page)
+  .then(ret => Promise.each(ret, r => {
+    return getInfo(r).then(re => common.push(re));
+  }))
+  .then(() => res.api({
+    total: Math.ceil(common.length / limit),
+    common: common.slice(page * limit, (page + 1) * limit)
+  }))
+  .catch(err => res.api_error(err.message));
+}
+
+/**
+ * 获取与目标用户的共同关注 - GET
+ */
+exports.getCommonFans = function (req, res, next) {
+  if (!req.session || !req.session.user) {
+    throw new Error('请登录后查看共同粉丝');
+  }
+  let id = req.session.user.id;
+  let uid = req.params.id;
+  let page = req.query.page - 1 || 0;
+  let limit = 30;
+  let common = [];
+  return user.getCommonFans(id, uid, page)
+  .then(ret => Promise.each(ret, r => {
+    return getInfo(r).then(re => common.push(re));
+  }))
+  .then(() => res.api({
+    total: Math.ceil(common.length / limit),
+    common: common.slice(page * limit, (page + 1) * limit)
+  }))
+  .catch(err => res.api_error(err.message));
+}

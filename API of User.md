@@ -299,6 +299,13 @@ name: 新分组名 String
 ## /users/:id/member/:gid    
 分组成员 - GET
 
+传入(query):
+无
+
+返回:
+{
+
+}
 
 ## /users/:id/groups
 全部分组 - GET 
@@ -351,6 +358,38 @@ act: 指明操作 'follow' | 'unfollow' | 'remark' | 'black' | 'unblack' | 'regr
 共同关注 - GET
 （需要登录）
 
+传入(query):
+[page: 页码]
+
+返回：
+{
+  "data":{ 
+    "common": [{
+      "gid": 3,
+      "creator": 1
+      "name": "老同学",
+      "description": "bob的老同学",
+      "public": false,
+      "count": 0,
+      "createAt": 2016-08-31 19:00:00,
+      "updateAt": 2016-08-31 19:00:00,
+      "deleteAt": 0,
+      "mem": []
+    }],
+    "total": 1
+  },
+  "status": {
+    "code": 0,
+    "msg": "request success!"
+  }
+}
+* common 为结果数组，total为总共页数
+
 ## /users/:id/comfans
 共同粉丝 - GET
 （需要登录）
+
+传入(query):
+无
+
+返回：
