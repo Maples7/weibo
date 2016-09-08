@@ -56,18 +56,19 @@ module.exports = new class {
             from: wbInfo.from,
             creatTime: Date.now()
         };
-        return db.transaction(t => {
-            return db.models.Weibo.create(keyValues, {
+        return db.transaction(t => 
+            db.models.Weibo.create(keyValues, {
                 raw: true,
                 type: db.QueryTypes.RAW,
                 transaction: options.t || t
-            }).tap(() => {
-                return userService.modifyWeiboCount({
+            }).tap(() => 
+                userService.modifyWeiboCount({
                     id: wbInfo.authorId,
                     action: 'add',
-                    t: options.t || t
-                });
-            }).tap(() => {
+                    t: options.t || t,
+                    time: keyValues.createTime
+                })
+            ).tap(() => {
                 if (options.commentSync && keyValues.forwardId) {
                     return this.addComment({
                         weiboId: keyValues.forwardId,
@@ -76,16 +77,16 @@ module.exports = new class {
                         from: keyValues.from
                     }, {t: t});
                 }
-            }).return('操作成功');
-        });
+            }).return('操作成功')
+        );
     }
 
     /**
      * 删除微博
      */
     deleteWeibo(wbId, user) {
-        return db.transaction(t => {
-            return db.models.Weibo.update({ deleteTime: Date.now() }, {
+        return db.transaction(t => 
+            db.models.Weibo.update({ deleteTime: Date.now() }, {
                 where: {
                     id: wbId,
                     author: user,
@@ -93,18 +94,25 @@ module.exports = new class {
                 },
                 fields: ['deleteTime'],
                 raw: true
-            }).tap(() => {
-                return userService.modifyWeiboCount({
-                    name: user,
-                    action: 'del',
-                    transaction: t
-                });
-            }).spread(affectedCount => 
+            }).tap(() => 
+                db.models.Weibo.findAll({
+                    attributes: ['creatTime'],
+                    where: {author: keyValues.author, deleteTime: 0},
+                    order: [['creatTime', 'DESC']],
+                    raw: true
+                }).then(wbInfo => 
+                    userService.modifyWeiboCount({
+                        name: user,
+                        action: 'del',
+                        transaction: t
+                    })
+                )
+            ).spread(affectedCount => 
                 affectedCount ? 
                     '删除成功' : 
                     Promise.reject(new Error('删除失败'))
-            );
-        });
+            )
+        );
     }
 
     /**
@@ -119,8 +127,8 @@ module.exports = new class {
             createTime: Date.now()
         };
 
-        return db.transaction(t => {
-            return db.models.Comment.create(keyValues, {
+        return db.transaction(t => 
+            db.models.Comment.create(keyValues, {
                 raw: true,
                 type: db.QueryTypes.RAW,
                 transaction: options.t || t
@@ -149,14 +157,14 @@ module.exports = new class {
                         }, {t: t});
                     });
                 }
-            }).tap(() => {
-                return this[_updateCount]('weibo', 'commentCount', keyValues.weiboId, '+ 1', {
+            }).tap(() => 
+                this[_updateCount]('weibo', 'commentCount', keyValues.weiboId, '+ 1', {
                     t: options.t || t
                 }).then(result => 
                     result.affectedRows ? Promise.resolve() : Promise.reject() 
                 )
-            }).return('操作成功');
-        });
+            ).return('操作成功')
+        );
     }
 
     /**
