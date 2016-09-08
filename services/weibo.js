@@ -7,7 +7,7 @@ const cache = require('../lib/cache');
 const cacheKey = require('../lib/cache/cacheKey');
 
 const _getWeiboBaseInfo = Symbol('getWeiboBaseInfo');
-const _updateFavorCount = Symbol('updateFavorCount');
+const _updateCount = Symbol('updateCount');
 const _getCommentDetail = Symbol('getCommentDetail');
 
 module.exports = new class {
@@ -136,11 +136,11 @@ module.exports = new class {
                     } else {
                         forwardContent += keyValues.content;
                     }
-                    this.getWeiboDetail(keyValues.weiboId).then(wbDetail => {
+                    return this.getWeiboDetail(keyValues.weiboId).then(wbDetail => {
                         if (wbDetail.content) {
                             forwardContent += '//@' + wbDetail.author + ':' + wbDetail.content
                         }
-                        this.addWeibo({
+                        return this.addWeibo({
                             content: forwardContent,
                             author: keyValues.author,
                             forwardId: keyValues.weiboId,
@@ -150,7 +150,11 @@ module.exports = new class {
                     });
                 }
             }).tap(() => {
-                // TODO: 评论数 + 1
+                return this[_updateCount]('weibo', 'commentCount', keyValues.weiboId, '+ 1', {
+                    t: options.t || t
+                }).then(result => 
+                    result.affectedRows ? Promise.resolve() : Promise.reject() 
+                )
             }).return('操作成功');
         });
     }
@@ -209,7 +213,7 @@ module.exports = new class {
                 transaction: t
             }).spread((instance, created) => {
                 if (created) {
-                    return this[_updateFavorCount](table, id, '+ 1', {t})
+                    return this[_updateCount](table, 'favorCount', id, '+ 1', {t})
                         .then(result =>
                             result.affectedRows ? 
                                 '点赞成功' : 
@@ -236,7 +240,7 @@ module.exports = new class {
                 transaction: t
             }).then(deletedRows => {
                 if (deletedRows) {
-                    return this[_updateFavorCount](table, id, '- 1', {t})
+                    return this[_updateCount](table, 'favorCount', id, '- 1', {t})
                         .then(result =>
                             result.affectedRows ? 
                                 '消赞成功' : 
@@ -252,11 +256,11 @@ module.exports = new class {
     /**
      * 更新微博/评论点赞数
      */
-    [_updateFavorCount](table, id, operation, options) {
+    [_updateCount](table, field, id, operation, options) {
         table = table + 's';
         let sqlStr = '' +
             'UPDATE ' + table + ' ' +
-            'SET favorCount = favorCount ' + operation + ' ' +
+            'SET ' + field + ' = ' + field + ' ' + operation + ' ' +
             'WHERE id = ? ';
         return db.query(sqlStr, {
             replacements: [id],
