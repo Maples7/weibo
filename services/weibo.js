@@ -15,7 +15,7 @@ module.exports = new class {
      * 获取微博的详细信息
      */
     getWeiboDetail(wbId, options = {}) {
-        return cache.wrapAsync(cacheKey.weiboDetail(wbId), () => db.models.Weibo.findById(wbId, {raw: true}))
+        return db.models.Weibo.findById(wbId, {raw: true})
             .tap(wbObj => {
                 if (options.needUserDetail) {
                     return userService.getInfoByName(wbObj.author)
