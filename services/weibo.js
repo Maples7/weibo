@@ -97,14 +97,15 @@ module.exports = new class {
             }).tap(() => 
                 db.models.Weibo.findAll({
                     attributes: ['creatTime'],
-                    where: {author: keyValues.author, deleteTime: 0},
+                    where: {author: user, deleteTime: 0},
                     order: [['creatTime', 'DESC']],
                     raw: true
                 }).then(wbInfo => 
                     userService.modifyWeiboCount({
                         name: user,
                         action: 'del',
-                        transaction: t
+                        transaction: t,
+                        time: wbInfo.createTime
                     })
                 )
             ).spread(affectedCount => 
