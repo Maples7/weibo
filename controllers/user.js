@@ -11,7 +11,7 @@ const verifyEmail = require('../helpers/verifyEmail');
 const aCode = require('../tools/code');
 
 /**
- * @api {post} /users/register 用户注册
+ * @api {post} /register 用户注册
  * @apiName PostUserRegister
  * @apiGroup User
  * @apiPermission anyone
@@ -90,7 +90,7 @@ exports.login = function (req, res, next) {
 };
 
 /**
- * @api {get} /users/logout 用户登出
+ * @api {get} /logout 用户登出
  * @apiName GetUserLogout
  * @apiGroup User
  * @apiPermission anyone
