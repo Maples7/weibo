@@ -66,6 +66,12 @@ module.exports = (sequelize, DataTypes) => sequelize.define('User', {
         type: DataTypes.INTEGER.UNSIGNED,
         comment: '用户所发微博数'
     },
+    weiboUpdate: {
+        allowNull: false,
+        defaultValue: 0,
+        type: DataTypes.BIGINT.UNSIGNED,
+        comment: '最近微博时间'
+    },
     createTime: {
         allowNull: false,
         defaultValue: 0,

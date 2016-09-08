@@ -310,7 +310,12 @@ exports.modifyWeiboCount = function (req, res, next) {
   if (!req.session || !req.session.user) {
     return res.api_error('请登录后再修改信息');
   }
-  let param = {action: req.body.act, uid: req.session.user.id}
+  let param = {
+    action: req.body.act,
+    uid: req.session.user.id,
+    time: req.body.time,
+    t: req.body.t
+  };
   return user.modifyWeiboCount(param)
   .then(ret => res.api('微博计数更新成功'))
   .catch(err => res.api_error(err.message));
@@ -567,6 +572,28 @@ exports.getCommonFans = function (req, res, next) {
   .then(() => res.api({
     total: Math.ceil(common.length / limit),
     common: common.slice(page * limit, (page + 1) * limit)
+  }))
+  .catch(err => res.api_error(err.message));
+}
+
+/**
+ * 获取自己的黑名单 - GET
+ */
+exports.getBlack = function (req, res, next) {
+  if (!req.session || !req.session.user) {
+    throw new Error('请登录后查看黑名单');
+  }
+  let id = req.session.user.id;
+  let page = req.params.id;
+  let limit = 30;
+  let black = [];
+  return user.getBlack(id)
+  .then(ret => Promise.each(ret, r => {
+    return getInfo(r).then(re => black.push(re));
+  }))
+  .then(() => res.api({
+    total: Math.ceil(black.length / limit),
+    black: black.slice(page * limit, (page + 1) * limit)
   }))
   .catch(err => res.api_error(err.message));
 }

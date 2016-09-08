@@ -471,13 +471,13 @@ function modifyWeiboCount(param) {
   .then(function (ret) {
     if (param.action === 'add') {
       return ret.updateAttributes(
-        {weiboCount: ret.weiboCount + 1},
+        {weiboCount: ret.weiboCount + 1, weiboUpdate: param.time},
         {transaction: param.t}
       );
     }
     else if (param.action === 'del') {
       return ret.updateAttributes(
-        {weiboCount: ret.weiboCount - 1},
+        {weiboCount: ret.weiboCount - 1, weiboUpdate: param.time},
         {transaction: param.t}
       );
     }
@@ -723,7 +723,8 @@ function getCommonFollow(id, uid, page) {
         }
         return null;
       }));
-  });
+  })
+  .then(() => common);
 }
 
 /**
@@ -732,25 +733,47 @@ function getCommonFollow(id, uid, page) {
 function getCommonFans(id, uid, page) {
   let common = [];
   let ibid, ubid;
-  return db.Group.findOne({where: {creator: id, name: '黑名单'}})
-  .then(one => {
-    ibid = one.dataValues.id;
-    return db.Group.findOne({where: {creator: uid, name: '黑名单'}});
-  })
-  .then(one => {
-    ubid = one.dataValues.id;
-    return db.Relationship.findAll({where: {follow: id, group: {$ne: ibid}}})
-  })
-  .then(ret => {
-    if (!ret) {
-      return common;
-    }
-    return Promise.each(ret.dataValues, r => db.Relationship.findOne({where: {follow: uid, fans: r.fans, group: {$ne: ubid}}})
+  // 先获取全部“我的粉丝”
+  return db.Relationship.findAll({where: {follow: id}})
+  .then(ret => _.uniqBy(ret.dataValues, 'fans'))
+  .then(ret => Promise.each(ret, r => {
+    return db.Group.findOne({where: {creator: r.fans, name: {$ne: '黑名单'}}})
+    .then(one => {
+      if (one) {
+        common.push(r.fans);
+      }
+      return null;
+    });
+  }))
+  // 再筛选共同粉丝
+  .then(() => Promise.each(common, (c, index) => {
+    return db.Relationship.findOne({where: {fans: c, follow: uid}})
+    .then(ret => {
+      if (!ret) {
+        common.splice(index, 1);
+        return null;
+      }
+      return db.Group.findOne({where: {id: ret.dataValues.group, name: {$ne: '黑名单'}}})
       .then(one => {
-        if (one) {
-          common.push(one.dataValues.fans);
+        if (!one) {
+          common.splice(index, 1);
         }
         return null;
-      }));
-  });
+      });
+    })
+    .then(() => common);
+  }));
+}
+
+/**
+ * getBlack 获取黑名单
+ */
+function getBlack(id) {
+  let black = [];
+  return db.Group.findOne({where: {creator: id, name: '黑名单'}})
+  .then(ret => db.Relationship.findAll({where: {fans: id, group: ret.dataValues.id}}))
+  .then(ret => !ret ? [] : Promise.each(ret.dataValues, r => {
+    black.push(r.follow);
+  }))
+  .then(() => black);
 }

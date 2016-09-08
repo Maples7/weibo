@@ -203,6 +203,8 @@ email: 需验证的邮箱 String
 
 传入(body)：    
 act: 发/删微博 'add' | 'del'
+time: 最近微博的发布时间，无微博则为0
+t: 事务
 
 返回：    
 {

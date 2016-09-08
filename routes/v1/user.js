@@ -29,14 +29,14 @@ router.post('/users/group', user.addGroup);
 router.put('/users/group/:gid', user.modifyGroup);
 router.delete('/users/group/:gid', user.delGroup);
 router.get('/users/group/:gid', user.getGroupDetail);
-router.get('/users/:id/member/:gid', user.getGroupMember);
 router.get('/users/:id/groups', user.getGroups);
+router.get('/users/:id/member/:gid', user.getGroupMember);
 
 
 // 关系图图谱
 router.put('/users/:id/relationship', user.modifyRelationship);
 router.get('/users/:id/follow', user.getFollow);
 router.get('/users/:id/fans', user.getFans);
- // TO-DO
+router.get('/users/black', user.getBlack);
 router.get('.users/:id/comfollow', user.getCommonFollow);
 router.get('/users/:id/comfans', user.getCommonFans);
