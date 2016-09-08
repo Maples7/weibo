@@ -190,7 +190,7 @@ module.exports = new class {
                         .filter(o => o.favorCount > criticalValue)
                         .slice(options.hotOffset, options.hotOffset + options.limit);
             }
-            finalAns.ordinaryComments =
+            finalAns.allComments =
                 cmList.slice(options.offset, options.offset + options.limit);
             
             return finalAns;

@@ -106,7 +106,7 @@
  *      {
  *        "data": {
  *          "hotComments": [],
- *          "ordinaryComments": [
+ *          "allComments": [
  *            {
  *              "id": 1,
  *              "author": "Maples7",
