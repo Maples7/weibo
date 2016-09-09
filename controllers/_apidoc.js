@@ -77,6 +77,7 @@
  *          },
  *          "content": "这里是Postman转发！",
  *          "forwardId": 4,
+ *          "originalId": 4,
  *          "from": "Postman",
  *          "favorCount": 0,
  *          "forwardCount": 0,
@@ -88,7 +89,7 @@
  *            "id": 4,
  *            "author": "Maples7",
  *            "content": "这里是Postman！"
- *          }
+ *          }  // 当原微博已被删除时，此字段返回字符串“原微博已删除”
  *        },
  *        "status": {
  *          "code": 0,

@@ -3,8 +3,8 @@ const Promise = require('bluebird');
 
 const userService = require('./user');
 const db = require('../models');
-const cache = require('../lib/cache');
-const cacheKey = require('../lib/cache/cacheKey');
+const cache = require('../lib');
+const cacheKey = require('../lib/cacheKey');
 
 const _getWeiboBaseInfo = Symbol('getWeiboBaseInfo');
 const _updateCount = Symbol('updateCount');
@@ -15,7 +15,7 @@ module.exports = new class {
      * 获取微博的详细信息
      */
     getWeiboDetail(wbId, options = {}) {
-        return db.models.Weibo.findById(wbId, {raw: true})
+        return cache.hget(cacheKey.weiboDetail(wbId), () => db.models.Weibo.findById(wbId, {raw: true}))
             .tap(wbObj => {
                 if (options.needUserDetail) {
                     return userService.getInfoByName(wbObj.author)
@@ -26,7 +26,6 @@ module.exports = new class {
                     if (wbObj.originalId && options.needOriginalWeiboDetail) {
                         return this[_getWeiboBaseInfo](wbObj.originalId).then(wbBaseInfo => {
                             wbObj.originalWeibo = wbBaseInfo;
-                            delete wbObj.originalId;
                         });
                     }
                 }
@@ -37,11 +36,16 @@ module.exports = new class {
      * 获取微博最基本的信息，包括 id, content, author
      */
     [_getWeiboBaseInfo](wbId) {
-        return db.models.Weibo.findById(wbId, {raw: true}).then(wbDetail => ({
-            id: wbDetail.id,
-            author: wbDetail.author,
-            content: wbDetail.content
-        }));
+        return cache.hget(cacheKey.weiboBaseInfo(wbId), () => db.models.Weibo.findOne({
+            where: { id: wbId, deleteTime: 0 },
+            raw: true,
+        }).then(wbDetail => 
+            wbDetail ? ({
+                id: wbDetail.id,
+                author: wbDetail.author,
+                content: wbDetail.content
+            }) : '原微博已删除'
+        ));
     }
 
     /**
@@ -61,7 +65,7 @@ module.exports = new class {
                 raw: true,
                 type: db.QueryTypes.RAW,
                 transaction: options.t || t
-            }).tap(() => 
+            }).tap(() =>  
                 userService.modifyWeiboCount({
                     id: wbInfo.authorId,
                     action: 'add',
@@ -77,6 +81,14 @@ module.exports = new class {
                         from: keyValues.from
                     }, {t: t});
                 }
+            }).tap(() => {
+                if (keyValues.forwardId) {
+                    return this[_updateCount]('weibo', 'forwardCount', keyValues.forwardId, '+ 1', {
+                        t: options.t || t
+                    }).then(result => 
+                        result.affectedRows ? Promise.resolve() : Promise.reject() 
+                    ).tap(() => cache.hdel(cacheKey.weiboDetail(keyValues.forwardId)));
+                } 
             }).return('操作成功')
         );
     }
@@ -108,6 +120,8 @@ module.exports = new class {
                         time: wbInfo.createTime
                     })
                 )
+            ).tap(() => 
+                cache.hdel([cacheKey.weiboDetail(wbId), cacheKey.weiboBaseInfo(wbId)])
             ).spread(affectedCount => 
                 affectedCount ? 
                     '删除成功' : 
@@ -163,8 +177,8 @@ module.exports = new class {
                     t: options.t || t
                 }).then(result => 
                     result.affectedRows ? Promise.resolve() : Promise.reject() 
-                )
-            ).return('操作成功')
+                ).tap(() => cache.hdel(cacheKey.weiboDetail(keyValues.weiboId)))
+            ).tap(() => cache.hdel(cacheKey.commentList(keyValues.weiboId))).return('操作成功')
         );
     }
 
@@ -172,7 +186,7 @@ module.exports = new class {
      * 获取单条评论详情
      */
     [_getCommentDetail](cmId) {
-        return db.models.Comment.findById(cmId, {raw: true});
+        return cache.hget(cacheKey.commentDetail(cmId),() => db.models.Comment.findById(cmId, {raw: true}));
     }
 
     /**
@@ -181,7 +195,7 @@ module.exports = new class {
     getCommentList(wbId, options) {
         let finalAns = {};
 
-        return db.models.Comment.findAll({
+        return cache.hget(cacheKey.commentList(wbId), () => db.models.Comment.findAll({
             where: {
                 weiboId: wbId,
                 deleteTime: 0
@@ -189,7 +203,7 @@ module.exports = new class {
             attributes: ['id'],
             order: [['createTime', 'DESC']],
             raw: true
-        }).map(cmObj => this[_getCommentDetail](cmObj.id)).then(cmList => {
+        })).map(cmObj => this[_getCommentDetail](cmObj.id)).then(cmList => {
             if (options.offset === 0) {
                 let totalFavorCount = _.sumBy(cmList, o => o.favorCount);
                 let totalCommentCount = cmList.length;
@@ -220,18 +234,15 @@ module.exports = new class {
                 },
                 defaults: { createTime: Date.now() },
                 transaction: t
-            }).spread((instance, created) => {
-                if (created) {
-                    return this[_updateCount](table, 'favorCount', id, '+ 1', {t})
-                        .then(result =>
-                            result.affectedRows ? 
-                                '点赞成功' : 
-                                Promise.reject(new Error('点赞失败')) 
-                        )
-                } else {
-                    return Promise.reject(new Error('已经赞过'));
-                }
-            })
+            }).spread((instance, created) => 
+                created ? this[_updateCount](table, 'favorCount', id, '+ 1', {t})
+                            .then(result =>
+                                result.affectedRows ? 
+                                    '点赞成功' : 
+                                    Promise.reject(new Error('点赞失败')) 
+                            )
+                        : Promise.reject(new Error('已经赞过'))
+            )
         );
     }
 
@@ -247,26 +258,23 @@ module.exports = new class {
                     itemType: table
                 },
                 transaction: t
-            }).then(deletedRows => {
-                if (deletedRows) {
-                    return this[_updateCount](table, 'favorCount', id, '- 1', {t})
-                        .then(result =>
-                            result.affectedRows ? 
-                                '消赞成功' : 
-                                Promise.reject(new Error('消赞失败'))
-                        )
-                } else {
-                    return Promise.reject(new Error('尚未点赞'));
-                }
-            })
+            }).then(deletedRows => 
+                deletedRows ? this[_updateCount](table, 'favorCount', id, '- 1', {t})
+                                .then(result =>
+                                    result.affectedRows ? 
+                                        '消赞成功' : 
+                                        Promise.reject(new Error('消赞失败'))
+                                )
+                            : Promise.reject(new Error('尚未点赞'))
+            )
         );
     }
 
     /**
-     * 更新微博/评论点赞数
+     * 更新计数
      */
     [_updateCount](table, field, id, operation, options) {
-        table = table + 's';
+        table += 's';
         let sqlStr = '' +
             'UPDATE ' + table + ' ' +
             'SET ' + field + ' = ' + field + ' ' + operation + ' ' +
@@ -276,7 +284,9 @@ module.exports = new class {
             type: db.QueryTypes.RAW,
             raw: true,
             transaction: options.t
-        }).get(0);
+        }).get(0).tap(result =>
+            result ? cache.hdel(cacheKey[table + 'Detail'](id)) : undefined
+        );
     }
 }();
  
