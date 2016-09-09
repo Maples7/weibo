@@ -541,6 +541,7 @@ exports.getGroupDetail = function (req, res, next) {
 exports.getGroupMember = function (req, res, next) {
   let member = [];
   let page = req.query.page - 1 || 0;
+  let limit = 30;
   let params = {id: req.params.gid};
   if (!req.session || !req.seesion.user || req.seesion.user.id != req.params.id) {
     params.public = true;
