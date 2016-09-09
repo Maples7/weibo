@@ -7,7 +7,7 @@ const Promise = require('bluebird');
 
 const user = require('../services/user');
 const status = require('../enums/resStatus');
-const verifyEmail = require('../helpers/verifyEmail');
+const verifyEmail = require('../tools/verifyEmail');
 const aCode = require('../tools/code');
 
 /**

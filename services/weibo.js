@@ -3,8 +3,8 @@ const Promise = require('bluebird');
 
 const userService = require('./user');
 const db = require('../models');
-const cache = require('../lib');
-const cacheKey = require('../lib/cacheKey');
+const cache = require('../lib/cache');
+const cacheKey = require('../lib/cache/cacheKey');
 
 const _getWeiboBaseInfo = Symbol('getWeiboBaseInfo');
 const _updateCount = Symbol('updateCount');
