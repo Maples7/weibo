@@ -471,8 +471,15 @@ exports.getInfoByName = function (req, res, next) {
  * @apiParam {String} req.query.name
  */
 exports.getFollow = function (req, res, next) {
-  return user.getFollow(req.query.name)
-  .then(ret => res.api(ret))
+  let id = req.params.id;
+  let sort = req.query.sort;
+  let page = req.query.page - 1 || 0;
+  let limit = 30;
+  return user.getFollow(id, sort)
+  .then(ret => res.api({
+    follow: ret.slice(page * limit, (page + 1) * limit),
+    total: Math.ceil(ret.length / limit) 
+  }))
   .catch(err => res.api_error(err.message));
 }
 
@@ -482,8 +489,15 @@ exports.getFollow = function (req, res, next) {
  * @apiParam {String} req.query.name
  */
 exports.getFans = function (req, res, next) {
-  return user.getFans(req.query.name)
-  .then(ret => res.api(ret))
+  let id = req.params.id;
+  let sort = req.query.sort;
+  let page = req.query.page - 1 || 0;
+  let limit = 30;
+  return user.getFans(id, sort)
+  .then(ret => res.api({
+    fans: fans.slice(page * limit, (page + 1) * limit),
+    total: Math.ceil(fans.length / limit) 
+  }))
   .catch(err => res.api_error(err.message));
 }
 
@@ -495,7 +509,7 @@ exports.getFans = function (req, res, next) {
 exports.getGroups = function (req, res, next) {
   let id = parseInt(req.params.id);
   let where = {creator: id};
-  if (req.query.name !== req.session.user.name) {
+  if (req.params.id !== req.session.user.id) {
     where.public = true;
   }
   return user.getGroups(where)
@@ -525,8 +539,20 @@ exports.getGroupDetail = function (req, res, next) {
  * @apiParam {String} req.query.group
  */
 exports.getGroupMember = function (req, res, next) {
-  return user.getGroupMember(req.query.name, req.query.group)
-  .then(ret => res.api(ret))
+  let member = [];
+  let page = req.query.page - 1 || 0;
+  let params = {id: req.params.gid};
+  if (!req.session || !req.seesion.user || req.seesion.user.id != req.params.id) {
+    params.public = true;
+  }
+  return user.getGroupMember(params)
+  .then(ret => Promise.each(ret, r => {
+    return getInfo(r.follow).then(re => common.push(re));
+  }))
+  .then(() => res.api({
+    total: Math.ceil(common.length / limit),
+    member: common.slice(page * limit, (page + 1) * limit)
+  }))
   .catch(err => res.api_error(err.message));
 }
 

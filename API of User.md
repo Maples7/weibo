@@ -81,7 +81,8 @@ password: 密码 String
     "msg": "request success!"
   }
 }     
-* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注、及groups属性，值为含分组名及分组id的JSON数组
+* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注、
+     及groups属性，值为含分组名及分组id的JSON数组
 
 ## /users/name/:name    
 通过name获取用户信息 - GET
@@ -302,12 +303,35 @@ name: 新分组名 String
 分组成员 - GET
 
 传入(query):
-无
+[page: 页码]
 
 返回:
 {
-
+  "data": { 
+    "common": [{
+      "id": 1,
+      "name": "bob",
+      "email": "bobmingxie@163.com",
+      "password": "e10adc3949ba59abbe56e057f20f883e",
+      "headPic": "",
+      "sex": true,
+      "bio": "Hello World",
+      "fansCount": 0,
+      "followCount": 15,
+      "weiboCount": 0,
+      "createTime": 1471867541932,
+      "emailConfirm": false
+    }],
+    "total": 1
+  },
+  "status": {
+    "code": 0,
+    "msg": "request success!"
+  }
 }
+* common 为结果数组，total为总共页数
+* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注、
+      及groups属性，值为含分组名及分组id的JSON数组
 
 ## /users/:id/groups
 全部分组 - GET 
@@ -348,13 +372,75 @@ act: 指明操作 'follow' | 'unfollow' | 'remark' | 'black' | 'unblack' | 'regr
 [groups: 关注/改组 的对象分组id组成的数组 Array]    
 [remark: 备注 的对象备注名 String]
 
+返回：
+
+
+
 ## /users/:id/follow
 全部关注 - GET
 
+传入(query):
+[page: 页码 Number]
+[sort: 排序方式（关注时间/粉丝数/互相关注/昵称首字母/最近更新） 'time' | 'fans' | 'each' | 'name' | 'update']
+
+返回：
+{
+  "data":{ 
+    "follow": [{
+      "id": 1,
+      "name": "bob",
+      "email": "bobmingxie@163.com",
+      "password": "e10adc3949ba59abbe56e057f20f883e",
+      "headPic": "",
+      "sex": true,
+      "bio": "Hello World",
+      "fansCount": 0,
+      "followCount": 15,
+      "weiboCount": 0,
+      "createTime": 1471867541932,
+      "emailConfirm": false,
+      "remark": '',
+      "groups": [{id: 3, name: '老同学', description:...}]
+    }],
+    "total": 1
+  },
+  "status": {
+    "code": 0,
+    "msg": "request success!"
+  }
+}
+* follow 为结果数组，total为总共页数
 
 ## /users/:id/fans
 全部粉丝 - GET
 
+传入(query):
+[page: 页码 Number]
+[sort: 排序方式（关注时间/粉丝数/互相关注/我未关注） 'time' | 'fans' | 'each' | 'not']
+{
+  "data":{ 
+    "fans": [{
+      "id": 1,
+      "name": "bob",
+      "email": "bobmingxie@163.com",
+      "password": "e10adc3949ba59abbe56e057f20f883e",
+      "headPic": "",
+      "sex": true,
+      "bio": "Hello World",
+      "fansCount": 0,
+      "followCount": 15,
+      "weiboCount": 0,
+      "createTime": 1471867541932,
+      "emailConfirm": false
+    }],
+    "total": 1
+  },
+  "status": {
+    "code": 0,
+    "msg": "request success!"
+  }
+}
+* fans 为结果数组，total为总共页数
 
 ## /users/:id/comfollow
 共同关注 - GET
@@ -367,16 +453,18 @@ act: 指明操作 'follow' | 'unfollow' | 'remark' | 'black' | 'unblack' | 'regr
 {
   "data":{ 
     "common": [{
-      "gid": 3,
-      "creator": 1
-      "name": "老同学",
-      "description": "bob的老同学",
-      "public": false,
-      "count": 0,
-      "createAt": 2016-08-31 19:00:00,
-      "updateAt": 2016-08-31 19:00:00,
-      "deleteAt": 0,
-      "mem": []
+      "id": 1,
+      "name": "bob",
+      "email": "bobmingxie@163.com",
+      "password": "e10adc3949ba59abbe56e057f20f883e",
+      "headPic": "",
+      "sex": true,
+      "bio": "Hello World",
+      "fansCount": 0,
+      "followCount": 15,
+      "weiboCount": 0,
+      "createTime": 1471867541932,
+      "emailConfirm": false
     }],
     "total": 1
   },
@@ -386,12 +474,74 @@ act: 指明操作 'follow' | 'unfollow' | 'remark' | 'black' | 'unblack' | 'regr
   }
 }
 * common 为结果数组，total为总共页数
+* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注、
+      及groups属性，值为含分组名及分组id的JSON数组
 
 ## /users/:id/comfans
 共同粉丝 - GET
-（需要登录）
+[page: 页码]
 
 传入(query):
 无
 
 返回：
+{
+  "data":{ 
+    "common": [{
+      "id": 1,
+      "name": "bob",
+      "email": "bobmingxie@163.com",
+      "password": "e10adc3949ba59abbe56e057f20f883e",
+      "headPic": "",
+      "sex": true,
+      "bio": "Hello World",
+      "fansCount": 0,
+      "followCount": 15,
+      "weiboCount": 0,
+      "createTime": 1471867541932,
+      "emailConfirm": false
+    }],
+    "total": 1
+  },
+  "status": {
+    "code": 0,
+    "msg": "request success!"
+  }
+}
+* common 为结果数组，total为总共页数
+* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注、
+      及groups属性，值为含分组名及分组id的JSON数组
+
+## /users/black    
+自己的黑名单 - GET    
+（需要登录）
+
+传入(query):
+[page: 页码]
+
+返回：
+{
+  "data":{ 
+    "balck": [{
+      "id": 1,
+      "name": "bob",
+      "email": "bobmingxie@163.com",
+      "password": "e10adc3949ba59abbe56e057f20f883e",
+      "headPic": "",
+      "sex": true,
+      "bio": "Hello World",
+      "fansCount": 0,
+      "followCount": 15,
+      "weiboCount": 0,
+      "createTime": 1471867541932,
+      "emailConfirm": false
+    }],
+    "total": 1
+  },
+  "status": {
+    "code": 0,
+    "msg": "request success!"
+  }
+}
+* black 为结果数组，total为总共页数
+

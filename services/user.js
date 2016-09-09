@@ -273,15 +273,19 @@ function follow(info) {
   // 根据分组信息创建关注记录
   .then(() => db.Group.findOne({where: {creator: info.id, name: '未分组'}}))
   .then((one) => {
-    groups.push(one.dataValues.group); // 将'未分组'纳入分组数列中
+    groups.push(one.dataValues.id); // 将'未分组'纳入分组数列中
     return Promise.each(groups, function (group) {
-      db.Relationship.create({
+      return db.Relationship.create({
         fans: info.fans,
         follow: info.follow,
         remark: info.remark || null,
         group: group
       });
-    });
+    })
+    // 更新发起关注方各分组成员数
+    .then(() => updateGroupsCount(info.fans))
+    .then(() => updateFollowCount(info.fans))
+    .then(() => updateFansCount(info.follow));
   });
 }
 
@@ -310,7 +314,11 @@ function unfollow(info) {
   .then(ret => ret.updateAttributes({followCount: ret.followCount - 1})))
   // 更新被关注方粉丝数
   .then(() => db.User.findOne({where: {id: info.follow}})
-  .then(ret => ret.updateAttributes({fansCount: ret.fansCount - 1})));
+  .then(ret => ret.updateAttributes({fansCount: ret.fansCount - 1})))
+  // 更新发起关注方各分组成员数
+  .then(() => updateGroupsCount(info.fans))
+  .then(() => updateFollowCount(info.fans))
+  .then(() => updateFansCount(info.follow));
 }
 
 /**
@@ -368,6 +376,8 @@ function regroup(info) {
       }
     }));
   })
+  // 更新发起关注方各分组成员数
+  .then(() => updateGroupsCount(info.fans));
 }
 
 /**
@@ -422,7 +432,13 @@ function black(info) {
         group: {$ne: one.dataValues.id}
       }
     });
-  });
+  })
+  // 更新拉黑方各分组成员数
+  .then(() => updateGroupsCount(info.fans))
+  // 更新被拉黑方各分组成员数
+  .then(() => updateGroupsCount(info.fans))
+  .then(() => updateFollowCount(info.fans))
+  .then(() => updateFansCount(info.follow));
 }
 
 /**
@@ -437,7 +453,9 @@ function unblack(info) {
       follow: info.follow,
       group: one.dataValues.id
     }
-  }));
+  }))
+  // 更新解除拉黑方各分组成员数
+  .then(() => updateGroupsCount(info.fans));;
 }
 
 /**
@@ -457,7 +475,13 @@ function remove(info) {
       throw new Error('该用户未关注你，无需移除');
     }
     return null;
-  });
+  })
+  // 更新移除粉丝方各分组成员数
+  .then(() => updateGroupsCount(info.fans))
+  // 更新被移除方各分组成员数
+  .then(() => updateGroupsCount(info.fans))
+  .then(() => updateFollowCount(info.fans))
+  .then(() => updateFansCount(info.follow));
 }
 
 /**
@@ -632,18 +656,106 @@ function getRemark(fans, follow) {
 /**
  * getFollow 获取关注列表
  */
-function getFollow(name) {
-  return db.Relationship.findAll({where: {fans: name}})
-  .then(ret => _.uniqBy(ret, 'follow'))
+function getFollow(id, sort) {
+  let follow = [];
+  return db.Group.findOne({where: {name: '黑名单', creator: id}})
+  .then(one => one.id)
+  .then(bid => db.Relationship.findAll({where: {fans: id, group: {$ne: bid}}}))
+  .then(ret => Promise.each(ret ? ret.dataValues : [], r => {
+    follow.push(r.follow);
+  }))
+  .then(ret => _.uniq(ret))
+  .then(() => Promise.each(ret, (r, i, l) => {
+    return getInfo(r).then(re => fans.splice(i, 1, re))
+    .then(() => getRemark(id, r))
+    .then(ret => {
+      fans[i].remark = ret.remark;
+      fans[i].groups = ret.groups
+    });
+  }))
+  .then(() => {
+    switch (sort) {
+      case 'fans':
+        follow = _.sortBy(follow, ['fansCount']);
+        follow = _.reverse(follow);
+        return follow;
+      case 'each':
+        return Promise.each(follow, (f, i) => {
+          return db.Relationship.findOne({where: {fans: f.id, follow: id}})
+          .then(one => {
+            if (!one) {
+              follow.splice(i, 1);
+            }
+            return null;
+          });
+        }).then(() => follow);
+      case 'name':
+        follow = _.sortBy(follow, ['name']);
+        return follow;
+      case 'update':
+        follow = _.sortBy(follow, ['weiboUpdate']);
+        follow = _.reverse(follow);
+        return follow;
+      default:
+        return follow;
+    }
+  })
   .catch(err => err);
 }
 
 /**
  * getFans 获取粉丝列表
  */
-function getFans(name) {
-  return db.Relationship.findAll({where: {follow: name}})
-  .then(ret => _.uniqBy(ret, 'fans'))
+function getFans(id, sort) {
+  let fans = [];
+  return db.Relationship.findAll({where: {follow: id}})
+  .then(ret => Promise.each(ret ? ret.dataValues : [], r => {
+    return db.Group.findOne({where: {name: '黑名单', id: r.group}})
+    .then(one => {
+      if (!one) {
+        fans.push(r.fans);
+      }
+      return null;
+    })
+  }))
+  .then(() => _.uniq(fans))
+  .then(() => Promise.each(ret, (r, i, l) => {
+    return getInfo(r).then(re => fans.splice(i, 1, re));
+  }))
+  .then(() => {
+    switch (sort) {
+      case 'fans': 
+        fans = _.sortBy(fans, ['fansCount']);
+        fans = _.reverse(fans);
+        return fans;
+      case 'each':
+        return Promise.each(fans, (f, i, l) => {
+          return db.Relationship.findOne({where: {fans: id, follow: f.id}})
+          .then(one => {
+            // 我的粉丝不会出现在我的黑名单
+            if (!one) {
+              fans.splice(i, 1);
+            }
+            return null;
+          });
+        })
+        .then(() => fans);
+      case 'not':
+        return Promise.each(fans, (f, i, l) => {
+          return db.Relationship.findOne({where: {fans: id, follow: f}})
+          .then(one => {
+            // 我的粉丝不会出现在我的黑名单
+            if (one) {
+              fans.splice(i, 1);
+            }
+            return null;
+          });
+        })
+        .then(() => fans);
+      default:
+        return fans;
+    }
+  })
   .catch(err => err);
 }
 
@@ -691,10 +803,17 @@ function getGroupDetail(id, gid) {
 /**
  * getGroupMember 获取分组成员
  */
-function getGroupMember(name, group) {
-  return db.Relationship.findAll({where: {fans: name, group: group}})
-  .then(ret => ret)
-  .catch(err => err);
+function getGroupMember(params) {
+  return db.Group.findOne({where: params})
+  .then(one => {
+    if (!one) {
+      throw new Error('查看分组失败');
+    }
+    else {
+      return db.Relationship.findAll({where: {group: params.id}});
+    }
+  })
+  .then(ret => ret ? ret.dataValues : []);
 }
 
 /**
@@ -776,4 +895,42 @@ function getBlack(id) {
     black.push(r.follow);
   }))
   .then(() => black);
+}
+
+/**
+ * updateGroupsCount 更新某人所有分组成员数
+ */
+function updateGroupsCount(id) {
+  return db.Group.findAll({where: {creator: id}})
+  .then(groups => Promise.each(groups.dataValues, group => {
+    return db.Relationship.count({where: {fans: id, group: group.id}})
+    .then(count => group.updateAttributes({count: count}));
+  }));
+}
+
+/**
+ * updateFollowCount 更新某人关注数
+ */
+function updateFollowCount(id) {
+  return db.Group.findOne({where: {creator: id, name: '未分组'}})
+  .then(one => db.Relationship.count({where: {group: id}}))
+  .then(count => db.User.update({followCount: count}, {where: {id: id}}));
+}
+
+/**
+ * updateFansCount 更新某人粉丝数
+ */
+function updateFansCount(id) {
+  return db.Relationship.findAll({where: {follow: id}})
+  .then(ret => ret ? _.uniqBy(ret.dataValues, ['fans']) : [])
+  .then(ret => Promise.each(ret, (r, i) => {
+    return db.Group.findOne({where: {name: '黑名单', group: r.group}})
+    .then(one => {
+      if (one) {
+        ret.splice(i, 1);
+      }
+      return null;
+    });
+  }).then(() => ret))
+  .then(ret => db.User.update({fansCount: ret.length}, {where: {id: id}}));
 }

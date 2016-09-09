@@ -37,6 +37,6 @@ router.get('/users/:id/member/:gid', user.getGroupMember);
 router.put('/users/:id/relationship', user.modifyRelationship);
 router.get('/users/:id/follow', user.getFollow);
 router.get('/users/:id/fans', user.getFans);
-router.get('/users/black', user.getBlack);
+router.get('/users/black', user.getBlack);  // 也可以用查分组成员的方法查黑名单成员
 router.get('.users/:id/comfollow', user.getCommonFollow);
 router.get('/users/:id/comfans', user.getCommonFans);
