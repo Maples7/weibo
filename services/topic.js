@@ -4,6 +4,8 @@ const db = require('../models');
 const cache = require('../lib/cache');
 const cacheKey = require('../lib/cache/cacheKey');
 
+const _getTopicDetail = Symbol(getTopicDetail);
+
 module.exports = new class {
     /**
      * 将wbId添加进某话题，尚不存在的话题会被自动创建
@@ -27,18 +29,28 @@ module.exports = new class {
     }
 
     /**
+     * 获取话题详情
+     */
+    [_getTopicDetail](tpId){
+        // TODO
+    }
+
+    /**
      * 获取热门话题列表
      */
     getHotTopics(limit) {
         return cache.smember(cacheKey.hotTopics(limit), () => db.models.Topic.findAll({
-            attributes: ['id', 'name', 'readCount', 'creatTime'],
+            attributes: ['id'],
             order: [['readCount', 'DESC'], ['creatTime', 'DESC']],
             limit: limit,
             raw: true
-        }));
+        }).map(o => o.id)).map(tpId => this[_getTopicDetail](tpId));
     }
 
     /**
      * 获取某一个话题下的微博列表
      */
+    getTopicWeibos(topicName, options) {
+        // TODO
+    }
 }();

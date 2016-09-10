@@ -19,3 +19,26 @@ exports.getHotTopics = (req, res, next) => {
         .catch(err => res.api_error(err.message));
 };  
 
+/**
+ * @api {get} /topics/:topicName 获取某话题下的微博列表
+ * @apiName GetTopicWeibos
+ * @apiGroup Topic
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Number} [limit=10]
+ * @apiParam {Number} [offset=0]
+ * 
+ * @apiUse GetWeiboListSuccess
+ */
+exports.getTopicWeibos = (req, res, next) => {
+    let topicName = req.params.topicName;
+    let options = {
+        limit: req.query.limit || 10,
+        offset: req.query.offset || 0
+    }
+
+    return topic.getTopicWeibos(topicName, options)
+        .then(data => res.api(data))
+        .catch(err => res.api_error(err.message));
+};
