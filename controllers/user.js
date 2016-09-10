@@ -96,8 +96,6 @@ exports.login = function (req, res, next) {
  * @apiPermission anyone
  * @apiVersion 0.0.1
  * 
- * @apiParam {String} name 竟然需要前端传用户名才能登出，也是醉了=_=
- * 
  * @apiUse OperationSuccess
  */
 exports.logout = function (req, res, next) {
@@ -467,7 +465,6 @@ exports.getInfoByName = function (req, res, next) {
 
 /**
  * 用户获取关注列表 - GET
- * @apiParam {Object} req.query
  * @apiParam {String} req.query.name
  */
 exports.getFollow = function (req, res, next) {
@@ -485,7 +482,6 @@ exports.getFollow = function (req, res, next) {
 
 /**
  * 用户获取粉丝列表 - GET
- * @apiParam {Object} req.query
  * @apiParam {String} req.query.name
  */
 exports.getFans = function (req, res, next) {
@@ -503,7 +499,6 @@ exports.getFans = function (req, res, next) {
 
 /**
  * 用户获取分组列表 - GET
- * @apiParam {Object} req.query
  * @apiParam {String} req.query.name
  */
 exports.getGroups = function (req, res, next) {
@@ -519,7 +514,6 @@ exports.getGroups = function (req, res, next) {
 
 /**
  * 用户获取分组描述 - GET
- * @apiParam {Object} req.query
  * @apiParam {String} req.query.name
  * @apiParam {String} req.query.group
  */
@@ -534,7 +528,6 @@ exports.getGroupDetail = function (req, res, next) {
 
 /**
  * 用户获取分组成员 - GET
- * @apiParam {Object} req.query
  * @apiParam {String} req.query.name
  * @apiParam {String} req.query.group
  */

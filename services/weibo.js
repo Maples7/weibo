@@ -186,7 +186,7 @@ module.exports = new class {
      * 获取单条评论详情
      */
     [_getCommentDetail](cmId) {
-        return cache.hget(cacheKey.commentDetail(cmId),() => db.models.Comment.findById(cmId, {raw: true}));
+        return cache.hget(cacheKey.commentDetail(cmId), () => db.models.Comment.findById(cmId, {raw: true}));
     }
 
     /**
