@@ -1,8 +1,8 @@
 /**
  * Created by Maples7 on 2016/8/6.
  */
+const regexp = require('../enums/regexp');
 
 module.exports = function validateEmail(email) {
-    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(email);
+    return regexp.email.test(email);
 };

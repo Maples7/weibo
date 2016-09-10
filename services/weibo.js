@@ -5,6 +5,7 @@ const userService = require('./user');
 const db = require('../models');
 const cache = require('../lib/cache');
 const cacheKey = require('../lib/cache/cacheKey');
+const parseContent = require('../tools/parseContent');
 
 const _getWeiboBaseInfo = Symbol('getWeiboBaseInfo');
 const _updateCount = Symbol('updateCount');
@@ -89,7 +90,9 @@ module.exports = new class {
                         result.affectedRows ? Promise.resolve() : Promise.reject() 
                     ).tap(() => cache.hdel(cacheKey.weiboDetail(keyValues.forwardId)));
                 } 
-            }).return('操作成功')
+            }).tap(wbDetail => parseContent(wbDetail.id, wbDetail.content, {
+                t: options.t || t
+            })).return('操作成功')
         );
     }
 
