@@ -1,6 +1,8 @@
 const _ = require('lodash');
 
 const db = require('../models');
+const cache = require('../lib/cache');
+const cacheKey = require('../lib/cache/cacheKey');
 
 module.exports = new class {
     /**
@@ -27,10 +29,14 @@ module.exports = new class {
     /**
      * 获取热门话题列表
      */
-
-    /**
-     * 更新热门话题，每十分钟自动更新一次
-     */
+    getHotTopics(limit) {
+        return cache.smember(cacheKey.hotTopics(limit), () => db.models.Topic.findAll({
+            attributes: ['id', 'name', 'readCount', 'creatTime'],
+            order: [['readCount', 'DESC'], ['creatTime', 'DESC']],
+            limit: limit,
+            raw: true
+        }));
+    }
 
     /**
      * 获取某一个话题下的微博列表

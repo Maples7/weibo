@@ -115,7 +115,7 @@ module.exports = new class {
                     where: {author: user, deleteTime: 0},
                     order: [['creatTime', 'DESC']],
                     raw: true
-                }).then(wbInfo => 
+                }).get(0).then(wbInfo => 
                     userService.modifyWeiboCount({
                         name: user,
                         action: 'del',
