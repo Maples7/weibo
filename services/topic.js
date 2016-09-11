@@ -24,7 +24,7 @@ module.exports = new class {
                 where: { id: topicDetail.id },
                 fields: ['weiboIds'],
                 transaction: options.t
-            });
+            }).tap(() => cache.del(cacheKey.topicWbIds(topicDetail.name)));
         });
     }
 
@@ -32,7 +32,11 @@ module.exports = new class {
      * 获取话题详情
      */
     [_getTopicDetail](tpId){
-        // TODO
+        return cache.hget(cacheKey.topicDetail(tpId), () => db.models.Topic.findById(tpId, {raw: true})
+            .then(tpDetail => {
+                delete tpDetail.weiboIds;
+                return tpDetail;
+            }));
     }
 
     /**
@@ -51,6 +55,10 @@ module.exports = new class {
      * 获取某一个话题下的微博列表
      */
     getTopicWeibos(topicName, options) {
-        // TODO
+        return cache.smember(cacheKey.topicWbIds(topicName), () => db.models.Topic.findAll({
+            attributes: ['weiboIds'],
+            where: { name: topicName },
+            raw: true
+        }).get(0).then(tpObj => JSON.parse(tpObj.weiboIds)));
     }
 }();
