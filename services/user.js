@@ -143,8 +143,8 @@ function register(userObj) {
       createTime: Date.now() 
     });
   })
-  .then(ret => db.Group.create({creator: userObj.name, name: '未分组'})
-  .then(ret => db.Group.create({creator: userObj.name, name: '黑名单'})));
+  .then(ret => db.Group.create({creator: ret.id, name: '未分组'}))
+  .then(ret => db.Group.create({creator: ret.id, name: '黑名单'}));
 }
 
 /**
