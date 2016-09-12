@@ -42,6 +42,7 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Group', {
   //   comment: '分组成员(数组)'
   // }
 }, {
+  timestamps: false,
   indexes: [{
     name: 'uniq_creator_name',
     fields: ['creator', 'name'],
