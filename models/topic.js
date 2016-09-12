@@ -16,7 +16,6 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Topic', {
     weiboIds: {
         allowNull: false,
         type: DataTypes.TEXT,
-        defaultValue: '[]',
         comment: '该话题下的微博集合'
     },
     readCount: {

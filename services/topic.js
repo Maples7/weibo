@@ -4,7 +4,7 @@ const db = require('../models');
 const cache = require('../lib/cache');
 const cacheKey = require('../lib/cache/cacheKey');
 
-const _getTopicDetail = Symbol(getTopicDetail);
+const _getTopicDetail = Symbol('getTopicDetail');
 
 module.exports = new class {
     /**
@@ -13,7 +13,10 @@ module.exports = new class {
     addWeibo2Topic(wbId, topicName, options = {}) {
         return db.models.Topic.findOrCreate({
             where: { name: topicName },
-            defaults: { name: topicName },
+            defaults: { 
+                name: topicName,
+                weiboIds: '[]' 
+            },
             transaction: options.t,
             raw: true
         }).then(topicDetail => {
