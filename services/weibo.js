@@ -90,9 +90,9 @@ module.exports = new class {
                         result.affectedRows ? Promise.resolve() : Promise.reject() 
                     ).tap(() => cache.hdel(cacheKey.weiboDetail(keyValues.forwardId)));
                 } 
-            }).tap(wbDetail => parseContent(wbDetail.id, wbDetail.content, {
-                t: options.t || t
-            })).return('操作成功')
+            }).tap(wbDetail =>  
+                parseContent(wbDetail.id, wbDetail.content, { t: options.t || t}) 
+            ).return('操作成功')
         );
     }
 
