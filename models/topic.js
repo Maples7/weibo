@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Topic', {
         type: DataTypes.INTEGER.UNSIGNED,
         comment: '话题阅读数'
     },
-    creatTime: {
+    createTime: {
         allowNull: false,
         defaultValue: Date.now(),
         type: DataTypes.BIGINT.UNSIGNED,

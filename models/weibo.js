@@ -72,7 +72,7 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Weibo', {
         type: DataTypes.INTEGER.UNSIGNED,
         comment: '微博阅读数'
     },
-    creatTime: {
+    createTime: {
         allowNull: false,
         defaultValue: Date.now(),
         type: DataTypes.BIGINT.UNSIGNED,

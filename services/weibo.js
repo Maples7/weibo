@@ -59,14 +59,14 @@ module.exports = new class {
             forwardId: wbInfo.forwardId || null,
             originalId: wbInfo.originalId || null,
             from: wbInfo.from,
-            creatTime: Date.now()
+            createTime: Date.now()
         };
         return db.transaction(t => 
             db.models.Weibo.create(keyValues, {
                 raw: true,
                 type: db.QueryTypes.RAW,
                 transaction: options.t || t
-            }).tap(() =>  
+            }).tap(() =>
                 userService.modifyWeiboCount({
                     id: wbInfo.authorId,
                     action: 'add',
