@@ -85,7 +85,6 @@ module.exports = (sequelize, DataTypes) => sequelize.define('User', {
         comment: '用户邮箱是否已验证'
     }
 }, {
-    createAt: false,
-    updateAt: false,
+    timestamps: false,
     paranoid: true
 })

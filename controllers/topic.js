@@ -1,6 +1,7 @@
 const topic = require('../services/topic');
 
 /**
+ * @apiIgnore
  * @api {get} /topics/hot 获取热门话题
  * @apiName GetHotTopics
  * @apiGroup Topic
@@ -20,6 +21,7 @@ exports.getHotTopics = (req, res, next) => {
 };  
 
 /**
+ * @apiIgnore
  * @api {get} /topics/:topicName 获取某话题下的微博列表
  * @apiName GetTopicWeibos
  * @apiGroup Topic
