@@ -450,7 +450,7 @@ exports.getInfoByName = function (req, res, next) {
   .then(function (result) {
     if (req.session.user && name !== req.session.user.name) {
       return user.getRemark(req.session.user.id, result.id)
-      .then(function (remark) {
+      .then(remark => {
         if (remark !== '' && remark !== null) {
           result.remark = remark;
         }
@@ -461,6 +461,62 @@ exports.getInfoByName = function (req, res, next) {
   })
   .then(ret => res.api(ret))
   .catch(err => res.api_error(err.message));
+}
+
+/**
+ * @api {get} /users/acc/:acc 通过用户名或备注获取用户信息
+ */
+exports.getInfoByAcc = function (req, res, next) {
+  if (!req.session || !req.session.user) {
+    return res.api_error('请登录后查找好友');
+  }
+  let acc = req.params.acc;
+  let range = req.query.range;
+  return user.getInfoByAcc(acc, req.session.user.id, range)
+  .then(function (results) {
+    return Promise.map(results, r => {
+      return user.getRemark(req.session.user.id, r.id)
+      .then(remark => {
+        if (!remark) {
+          r.remark = remark;
+        }
+        return null;
+      });
+    });
+  })
+  .then(ret => res.api(ret))
+  .catch(err => res.api_error(err.message));
+}
+
+/**
+ * 批量管理 - PUT
+ */
+exports.batchManage = function (req, res, next) {
+  if (!req.session || !req.session.user) {
+    return res.api_error('请登录后再批量管理');
+  }
+  let act = req.body.act;
+  let follows = req.body.follows;
+  let fans = req.session.user.id;
+  switch (act) {
+    case 'regroup':
+      let groups = req.body.groups;
+      for (let i = 0;i < follows.length;i++) {
+        follows[i] = {fans: fans, follow: follows[i], groups: groups};
+      }
+      return Promise.map(follows, follow => user.regroup(follow))
+      .then(() => res.api('批量改组成功'))
+      .catch(err => res.api_error(err.message));
+    case 'unfollow':
+      for (let i = 0;i < follows.length;i++) {
+        follows[i] = {fans: fans, follow: follows[i]};
+      }
+      return Promise.map(follows, follow => user.unfollow(follow))
+      .then(() => res.api('批量取关成功'))
+      .catch(err => res.api_error(err.message));
+    default :
+      return res.api_error('未知操作');
+  }
 }
 
 /**

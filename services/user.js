@@ -39,6 +39,7 @@ exports.modifyGroup = modifyGroup;
 exports.delGroup = delGroup;
 exports.getInfo = getInfo;
 exports.getInfoByName = getInfoByName;
+exports.getInfoByAcc = getInfoByAcc;
 exports.getRemark = getRemark;
 exports.getFollow = getFollow;
 exports.getFans = getFans;
@@ -143,6 +144,8 @@ function register(userObj) {
       createTime: Date.now() 
     });
   })
+  .then(ret => db.Group.create({creator: ret.id, name: '未分组'})
+  .then(ret => db.Group.create({creator: ret.id, name: '黑名单'})));
   .then(ret => db.Group.create({creator: ret.id, name: '未分组'}))
   .then(ret => db.Group.create({creator: ret.id, name: '黑名单'}));
 }
@@ -625,8 +628,39 @@ function getInfoByName(name) {
     else {
       return ret.dataValues;
     }
-  })
-  .catch(err => err);
+  });
+}
+
+/**
+ * getInfoByAcc 通过用户名或备注获取信息（数组）
+ */
+function getInfoByAcc(acc, me, range) {
+  switch (range) {
+    case 'fans':
+      return getFans(me, 'time').then(fans => Promise.each(fans, (f, index) => {
+        if (f.name != acc && f.remark != acc) {
+          fans.splice(index, 1);
+        }
+        return fans;
+      }));
+    case 'follow':
+      return getFollow(me, 'time').then(follow => Promise.each(follow, (f, index) => {
+        if (f.name != acc && f.remark != acc) {
+          follow.splice(index, 1);
+        }
+        return follow;
+      }));
+    default :
+      return db.Relationship.findAll({where: {fans: me, remark: acc}})
+      .then(fos => {
+        fos = _.uniq(fos);
+        return Promise.map(fos, f => {
+          return User.findOne({where: {id: f.follow}})
+          .then(ret => {f = ret});
+        }).then((fos) => db.User.findOne({where: {name: acc}}).then(ret => fos.push(ret.dataValues)))
+        .then(() => fos);
+      });
+  }
 }
 
 /**
@@ -903,6 +937,20 @@ function getBlack(id) {
 function updateGroupsCount(id) {
   return db.Group.findAll({where: {creator: id}})
   .then(groups => Promise.each(groups.dataValues, group => {
+    if (group.name = '未分组') {
+      var c = 0;
+      return db.Relationship.findAll({where: {group: group.id}})
+      .then(rets => Promise.each(rets.dataValues, r => {
+        return db.Relationship.count({where: {fans: r.fans, follow: r.follow}})
+        .then(count => {
+          if (count == 1) {
+            c = c + 1;
+          }
+            return null;
+        });
+      })) // 未分组 成员计数完成
+      .then(() => db.Group.update({count: c}, {where: {id: group.id}}));
+    }
     return db.Relationship.count({where: {fans: id, group: group.id}})
     .then(count => group.updateAttributes({count: count}));
   }));

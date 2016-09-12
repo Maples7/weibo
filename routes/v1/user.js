@@ -15,6 +15,7 @@ router.get('/logout', user.logout);
 // 个人信息
 router.get('/users/:id', user.getInfo);
 router.get('/users/name/:name', user.getInfoByName);
+router.get('/users/acc/:acc', user.getInfoByAcc);
 router.put('/users/:id', user.modifyInfo);
 
 // 邮箱与密码
@@ -32,9 +33,9 @@ router.get('/users/group/:gid', user.getGroupDetail);
 router.get('/users/:id/groups', user.getGroups);
 router.get('/users/:id/member/:gid', user.getGroupMember);
 
-
 // 关系图图谱
 router.put('/users/:id/relationship', user.modifyRelationship);
+router.put('/users/relationship', user.batchManage);
 router.get('/users/:id/follow', user.getFollow);
 router.get('/users/:id/fans', user.getFans);
 router.get('/users/black', user.getBlack);  // 也可以用查分组成员的方法查黑名单成员

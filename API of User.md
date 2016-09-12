@@ -110,6 +110,16 @@ password: 密码 String
 }     
 * 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注
 
+## /users/acc/:acc
+通过name或remark获取用户信息(数组) - GET
+(需要登录)
+
+传入(query):
+range: 查找范围(全站/全部关注/全部粉丝) 'all'（缺省默认） | 'follow' | 'fans'
+
+返回：
+
+
 ## /users/:id
 修改用户信息 - PUT
 （需要登录）
@@ -374,6 +384,16 @@ act: 指明操作 'follow' | 'unfollow' | 'remark' | 'black' | 'unblack' | 'regr
 
 返回：
 
+## users/:relationship
+（全部关注/某分组中）批量管理 - PUT
+（需要登录）
+
+传入(body):
+act: 操作行为（改组/取关） 'regroup' | 'unfollow'
+follow: 被操作的用户id Array
+[groups: 改组时需要被分配到的新分组id表 Array]
+
+返回：
 
 
 ## /users/:id/follow
