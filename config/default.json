@@ -27,5 +27,10 @@
         "port": 6379,
         "db": 0,
         "sessionDB": 1
+    },
+    "qiniu": {
+        "bucket": "weibo",
+        "AK": "cD9wRmYmgam7jtZp3BeTFdu-xDUhBe6ZrfWYN-bP",
+        "SK": "SOIgYjMogGN200kIq2FVXIE-qTy3PqC4r2cZYT39"
     }
 }
