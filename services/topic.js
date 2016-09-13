@@ -48,7 +48,7 @@ module.exports = new class {
     getHotTopics(limit) {
         return cache.smember(cacheKey.hotTopics(limit), () => db.models.Topic.findAll({
             attributes: ['id'],
-            order: [['readCount', 'DESC'], ['creatTime', 'DESC']],
+            order: [['readCount', 'DESC'], ['createTime', 'DESC']],
             limit: limit,
             raw: true
         }).map(o => o.id)).map(tpId => this[_getTopicDetail](tpId));
