@@ -51,7 +51,7 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Message', {
         allowNull: false,
         defaultValue: Date.now(),
         type: DataTypes.BIGINT.UNSIGNED,
-        comment: '微博创建时间'
+        comment: '消息创建时间'
     }
 }, {
     timestamps: false,
