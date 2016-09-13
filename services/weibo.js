@@ -73,32 +73,34 @@ module.exports = new class {
                 raw: true,
                 type: db.QueryTypes.RAW,
                 transaction: options.t || t
-            }).tap(() =>
+            }).tap(wbDetail =>
                 userService.modifyWeiboCount({
                     id: wbInfo.authorId,
                     action: 'add',
                     t: options.t || t,
-                    time: keyValues.createTime
+                    time: wbDetail.createTime
                 })
-            ).tap(() => {
-                if (options.commentSync && keyValues.forwardId) {
+            ).tap(wbDetail => {
+                if (options.commentSync && wbDetail.forwardId) {
                     return this.addComment({
-                        weiboId: keyValues.forwardId,
-                        content: keyValues.content,
-                        author: keyValues.author,
-                        from: keyValues.from
+                        weiboId: wbDetail.forwardId,
+                        content: wbDetail.content,
+                        author: wbDetail.author,
+                        from: wbDetail.from
                     }, {t: t});
                 }
-            }).tap(() => {
-                if (keyValues.forwardId) {
-                    return this[_updateCount]('weibo', 'forwardCount', keyValues.forwardId, '+ 1', {
+            }).tap(wbDetail => {
+                if (wbDetail.forwardId) {
+                    return this[_updateCount]('weibo', 'forwardCount', wbDetail.forwardId, '+ 1', {
                         t: options.t || t
                     }).then(result => 
                         result.affectedRows ? Promise.resolve() : Promise.reject() 
-                    ).tap(() => cache.hdel(cacheKey.weiboDetail(keyValues.forwardId)));
+                    ).tap(() => cache.hdel(cacheKey.weiboDetail(wbDetail.forwardId)));
                 } 
             }).tap(wbDetail =>  
                 parseContent(wbDetail.id, wbDetail.content, { t: options.t || t}) 
+            ).tap(wbDetail => 
+                cache.hdel(cacheKey.selfWeiboList(wbDetail.author))
             ).return('操作成功')
         );
     }
@@ -131,7 +133,11 @@ module.exports = new class {
                     })
                 )
             ).tap(() => 
-                cache.hdel([cacheKey.weiboDetail(wbId), cacheKey.weiboBaseInfo(wbId)])
+                cache.hdel([
+                    cacheKey.weiboDetail(wbId), 
+                    cacheKey.weiboBaseInfo(wbId),
+                    cacheKey.selfWeiboList(user)
+                ])
             ).spread(affectedCount => 
                 affectedCount ? 
                     '删除成功' : 
@@ -302,7 +308,7 @@ module.exports = new class {
     /**
      * 获取微博列表
      */
-    getWeiboList(options) {
+    getIndexWeiboList(options) {
         return db.models.Weibo.findAll({
             where: {deleteTime: 0},
             attributes: ['id', 'scope', 'author'],
@@ -332,6 +338,26 @@ module.exports = new class {
             _.map(_.slice(wbObjs, options.offset, options.offset + options.limit), 'id')
         ).map(wbId => this.getWeiboDetail(o.id, {
             needUserDetail: true,
+            needOriginalWeiboDetail: true
+        }));
+    }
+
+    /**
+     * 获取自己发的微博列表
+     */
+    getSelfWeiboList(userName, options) {
+        return cache.hget(cacheKey.selfWeiboList(userName, options), () => db.models.Weibo.findAll({
+            where: {
+                author: userName,
+                deleteTime: 0 
+            },
+            attributes: ['id'],
+            order: [['createTime', 'DESC']],
+            limit: options.limit,
+            offset: options.offset,
+            raw: true
+        }).then(wbObjs => _.map(wbObjs, 'id')))
+        .map(wbId => this.getWeiboDetail(wbId, {
             needOriginalWeiboDetail: true
         }));
     }

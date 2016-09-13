@@ -16,8 +16,11 @@ router.route('/weibos/:wbId(\\d+)')
     .delete(check.checkLogin, weibo.deleteWeibo);
 
 router.route('/weibos')
-    .get(weiboList.getWeiboList)
+    .get(weiboList.getIndexWeiboList)
     .post(check.checkLogin, weibo.addWeibo);
+
+router.route('/weibos/self')
+    .get(check.checkLogin, weiboList.getSelfWeiboList);
 
 router.route('/weibos/:wbId(\\d+)/comments')
     .get(weibo.getCommentList)

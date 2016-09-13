@@ -5,9 +5,9 @@ const status = require('../enums/resStatus');
 
 /**
  * @apiIgnore
- * @api {get} /weibos 获取微博列表
- * @apiName getWeiboList
- * @apiGroup Weibo
+ * @api {get} /weibos 获取首页微博列表
+ * @apiName getIndexWeiboList
+ * @apiGroup WeiboList
  * @apiPermission anyone|LoginUser
  * @apiVersion 0.0.1
  * 
@@ -19,7 +19,7 @@ const status = require('../enums/resStatus');
  *   
  * @apiUse GetWeiboListSuccess
  */
-exports.getWeiboList = (req, res, next) => {
+exports.getIndexWeiboList = (req, res, next) => {
     let options = {
         group: req.query.group,
         limit: req.query.limit || 20,
@@ -27,6 +27,29 @@ exports.getWeiboList = (req, res, next) => {
         user: req.session.user
     };
 
-    return weibo.getWeiboList(options)
+    return weibo.getIndexWeiboList(options)
         .then(data => res.api(data)).catch(err => res.api_error(err.message));
-}
+};
+
+/**
+ * @apiIgnore
+ * @api {get} /weibos/self 获取自己发的微博列表
+ * @apiName getSelfWeiboList
+ * @apiGroup WeiboList
+ * @apiPermission LoginUser
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Number}           [limit=20]   
+ * @apiParam {Number}           [offset=0]
+ * 
+ * @apiUse GetWeiboListSuccess
+ */
+exports.getSelfWeiboList = (req, res, next) => {
+    let options = {
+        limit: req.query.limit || 20,
+        offset: req.query.offset || 0,
+    };
+
+    return weibo.getSelfWeiboList(req.session.user.name, options)
+        .then(data => res.api(data)).catch(err => res.api_error(err.message));
+};
