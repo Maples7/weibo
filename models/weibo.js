@@ -83,6 +83,11 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Weibo', {
         defaultValue: 0,
         type: DataTypes.BIGINT.UNSIGNED,
         comment: '微博删除时间，0表示未删除；已删除的微博并不实际删除，只是记录删除时间作为标记'
+    },
+    scope: {
+        allowNull: true,
+        type: DataTypes.TEXT,
+        comment: '可见范围，null为全站可见，string为某个分组，array为用户id数组'
     }
 }, {
     timestamps: false

@@ -291,5 +291,41 @@ module.exports = new class {
             result ? cache.hdel(cacheKey[table + 'Detail'](id)) : undefined
         );
     }
+
+    /**
+     * 获取微博列表
+     */
+    getWeiboList(options) {
+        return db.models.Weibo.findAll({
+            where: {deleteTime: 0},
+            attributes: ['id', 'scope', 'author'],
+            order: [['createTime', 'DESC']],
+            raw: true
+        }).then(wbObjs => 
+            options.user ? 
+                wbObjs.filter(wbObj => {
+                    if (!wbObj.scope) {
+                        return true;
+                    } else {
+                        let scope = JSON.parse(wbObj.scope);
+                        if (_.isString(scope)) {
+                            return userService.getGroupMembersByName(scope, wbObj.author)
+                                .then(idSet => idSet.has(options.user.id));
+                        } else if (_.isArray(scope)) {
+                            return _.includes(scope, options.user.id);
+                        } else {
+                            return Project.reject(new TypeError('Scope of weibo:' + 
+                                wbObj.id + ' got the wrong type'
+                            ));
+                        }
+                    }
+                })
+                : wbObjs
+        ).then(wbObjs => 
+            _.map(_.slice(wbObjs, options.offset, options.offset + options.limit), 'id')
+        ).map(wbId => this.getWeiboDetail(o.id, {
+            needUserDetail: true,
+            needOriginalWeiboDetail: true
+        }));
+    }
 }();
- 

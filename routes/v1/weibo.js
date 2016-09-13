@@ -16,7 +16,7 @@ router.route('/weibos/:wbId(\\d+)')
     .delete(check.checkLogin, weibo.deleteWeibo);
 
 router.route('/weibos')
-    // .get(weiboList.getWeiboList) // 需要用户模块配合完成
+    .get(weiboList.getWeiboList)
     .post(check.checkLogin, weibo.addWeibo);
 
 router.route('/weibos/:wbId(\\d+)/comments')

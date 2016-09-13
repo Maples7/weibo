@@ -51,7 +51,7 @@ module.exports = new class {
             order: [['readCount', 'DESC'], ['createTime', 'DESC']],
             limit: limit,
             raw: true
-        }).map(o => o.id)).map(tpId => this[_getTopicDetail](tpId));
+        }).then(tps => _.map(tps, 'id'))).map(tpId => this[_getTopicDetail](tpId));
     }
 
     /**

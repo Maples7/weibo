@@ -980,3 +980,18 @@ function updateFansCount(id) {
   }).then(() => ret))
   .then(ret => db.User.update({fansCount: ret.length}, {where: {id: id}}));
 }
+
+/**
+ * 根据分组名获取所有的分组成员id
+ */
+exports.getGroupMembersByName = (groupName, userName) => {
+  return db.User.findOne({
+    attributes: ['id'],
+    where: {name: userName},
+    raw: true
+  }).get('id').then(userId => db.Relationship.findAll({
+    where: {group: groupName, fans: userId},
+    attributes: ['follow'],
+    raw: true
+  })).then(o => _.map(o, 'follow')).then(arr => new Set(arr));
+};
