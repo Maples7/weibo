@@ -8,10 +8,10 @@ A RESTful API server for weibo application using Node.js tech stack
 ## Features
 * Express + MySQL(Sequelize) + Redis(Session & Cache)
 * multiple ES6 features are applied
-* auto-api-doc through apidoc module
+* auto-api-doc based on apidoc module
 * api-test(functional test) trial
 * redis-based cache
-* base on Qiniu clound storage service  // TODO 
+* base on Qiniu clound storage service  
 
 
 
