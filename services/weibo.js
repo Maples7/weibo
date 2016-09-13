@@ -61,6 +61,13 @@ module.exports = new class {
             from: wbInfo.from,
             createTime: Date.now()
         };
+
+        if (!_.isNaN(+wbInfo.scope) || wbInfo.scope.includes(',')) {
+            keyValues.scope = _.words(wbInfo.scope).map(num => +num);
+        } else if (wbInfo.scope) {
+            keyValues.scope = wbInfo.scope;
+        }
+
         return db.transaction(t => 
             db.models.Weibo.create(keyValues, {
                 raw: true,

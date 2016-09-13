@@ -36,6 +36,7 @@ exports.getWeiboDetail = (req, res, next) => {
  * @apiParam {Number}          [forwardWbId]   转发微博时，直接被转发微博的Id
  * @apiParam {Number}          [originalWbId]  转发链顶端的微博id
  * @apiParam {Number=0,1}      [commentSync]   是否转发微博的同时评论，1是0否
+ * @apiParam {String}          [scope]         微博可见范围，默认全站可见，纯string表示某个分组，用逗号“,”隔开的多个id值表示仅这些id的用户可见
  * 
  * @apiUse OperationSuccess
  */
@@ -51,6 +52,7 @@ exports.addWeibo = (req, res, next) => {
 
     wbInfo.forwardId = +req.body.forwardWbId;
     wbInfo.originalId = +req.body.originalWbId;
+    wbInfo.scope = req.body.scope;
     wbInfo.author = req.session.user.name;
     wbInfo.authorId = req.session.user.id;
 
