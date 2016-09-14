@@ -337,7 +337,7 @@ module.exports = new class {
                 : wbObjs
         ).then(wbObjs => 
             _.map(_.slice(wbObjs, options.offset, options.offset + options.limit), 'id')
-        ).map(wbId => this.getWeiboDetail(o.id, {
+        ).map(wbId => this.getWeiboDetail(wbId, {
             needUserDetail: true,
             needOriginalWeiboDetail: true
         }));

@@ -4,7 +4,6 @@ const weibo = require('../services/weibo');
 const status = require('../enums/resStatus');
 
 /**
- * @apiIgnore
  * @api {get} /weibos 获取首页微博列表
  * @apiName getIndexWeiboList
  * @apiGroup WeiboList
@@ -32,7 +31,6 @@ exports.getIndexWeiboList = (req, res, next) => {
 };
 
 /**
- * @apiIgnore
  * @api {get} /weibos/self 获取自己发的微博列表
  * @apiName getSelfWeiboList
  * @apiGroup WeiboList
