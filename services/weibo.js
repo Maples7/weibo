@@ -62,10 +62,12 @@ module.exports = new class {
             createTime: Date.now()
         };
 
-        if (!_.isNaN(+wbInfo.scope) || wbInfo.scope.includes(',')) {
-            keyValues.scope = _.words(wbInfo.scope).map(num => +num);
-        } else if (wbInfo.scope) {
-            keyValues.scope = wbInfo.scope;
+        if (wbInfo.scope) {
+            if (!_.isNaN(+wbInfo.scope) || wbInfo.scope.includes(',')) {
+                keyValues.scope = JSON.stringify(_.words(wbInfo.scope).map(num => +num));
+            } else {
+                keyValues.scope = wbInfo.scope;
+            }
         }
 
         return db.transaction(t => 
@@ -75,7 +77,7 @@ module.exports = new class {
                 transaction: options.t || t
             }).tap(wbDetail =>
                 userService.modifyWeiboCount({
-                    id: wbInfo.authorId,
+                    name: wbDetail.author,
                     action: 'add',
                     t: options.t || t,
                     time: wbDetail.createTime
@@ -119,17 +121,17 @@ module.exports = new class {
                 fields: ['deleteTime'],
                 raw: true
             }).tap(() => 
-                db.models.Weibo.findAll({
-                    attributes: ['creatTime'],
+                db.models.Weibo.findOne({
+                    attributes: ['createTime'],
                     where: {author: user, deleteTime: 0},
-                    order: [['creatTime', 'DESC']],
+                    order: [['createTime', 'DESC']],
                     raw: true
-                }).get(0).then(wbInfo => 
+                }).then(wbInfo => 
                     userService.modifyWeiboCount({
                         name: user,
                         action: 'del',
                         transaction: t,
-                        time: wbInfo.createTime
+                        time: wbInfo.createTime || 0
                     })
                 )
             ).tap(() => 
@@ -290,16 +292,15 @@ module.exports = new class {
      * 更新计数
      */
     [_updateCount](table, field, id, operation, options) {
-        table += 's';
         let sqlStr = '' +
-            'UPDATE ' + table + ' ' +
+            'UPDATE ' + table + 's ' +
             'SET ' + field + ' = ' + field + ' ' + operation + ' ' +
             'WHERE id = ? ';
         return db.query(sqlStr, {
             replacements: [id],
             type: db.QueryTypes.RAW,
             raw: true,
-            transaction: options.t
+            transaction: options.t  
         }).get(0).tap(result =>
             result ? cache.hdel(cacheKey[table + 'Detail'](id)) : undefined
         );

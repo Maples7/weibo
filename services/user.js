@@ -490,7 +490,7 @@ function remove(info) {
  */
 function modifyWeiboCount(param) {
   return db.User.findOne({
-    where: {id: param.id},
+    where: {name: param.name},
     transaction: param.t
   })
   .then(function (ret) {

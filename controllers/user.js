@@ -464,6 +464,7 @@ exports.getInfoByName = function (req, res, next) {
 }
 
 /**
+ * @apiIgnore
  * @api {get} /users/acc/:acc 通过用户名或备注获取用户信息
  */
 exports.getInfoByAcc = function (req, res, next) {

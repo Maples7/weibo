@@ -2,6 +2,8 @@ const Sequelize = require('sequelize');
 const config = require('config');
 const _ = require('lodash');
 
+const dataTables = require('../enums/dataTables'); 
+
 let sequelize = new Sequelize(config.get('mysql.database'), config.get('mysql.user'), config.get('mysql.password'), {
     host: config.get('mysql.host'),
     port: config.get('mysql.port'),
@@ -18,15 +20,6 @@ sequelize.authenticate().then(msg => {
     console.log('Unable to connect to the database: ', err);
 });
 
-[
-    './weibo',
-    './user',
-    './comment',
-    './favor',
-    './relationship',
-    './group',
-    './code',
-    './topic'
-].map(model => sequelize.import(model));
+dataTables.map(model => sequelize.import(model));
 
 module.exports = sequelize;
