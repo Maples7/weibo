@@ -178,14 +178,14 @@ module.exports = new class {
                         forwardContent += keyValues.content;
                     }
                     return this.getWeiboDetail(keyValues.weiboId).then(wbDetail => {
-                        if (wbDetail.content) {
+                        if (wbDetail.forwardId) {
                             forwardContent += '//@' + wbDetail.author + ':' + wbDetail.content
                         }
                         return this.addWeibo({
                             content: forwardContent,
-                            author: keyValues.author,
-                            forwardId: keyValues.weiboId,
-                            originalId: wbDetail.originalId,
+                            author: wbDetail.author,
+                            forwardId: wbDetail.id,
+                            originalId: wbDetail.originalId || wbDetail.id,
                             from: cmInfo.from
                         }, {t: t});
                     });
