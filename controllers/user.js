@@ -108,7 +108,7 @@ exports.logout = function (req, res, next) {
  * @api {put} /users/info 修改用户信息
  * @apiName PutUserInfo
  * @apiGroup User
- * @apiPermission anyone
+ * @apiPermission logined users
  * @apiVersion 0.0.1
  * 
  * @apiParam {String{1..20}}    [name]      修改后的用户名
@@ -138,8 +138,10 @@ exports.modifyInfo = function (req, res, next) {
  * @api {get} /users/needmail 发起发送邮箱请求
  * @apiName GetUserEmail
  * @apiGroup User
- * @apiPermission anyone
+ * @apiPermission logined users
  * @apiVersion 0.0.1
+ * 
+ * @apiParam {String} email 需验证的邮箱
  * 
  * @apiUse OperationSuccess
  */
@@ -160,13 +162,12 @@ exports.sendMail = function (req, res, next) {
  * @api {put} /users/email 用户验证邮箱
  * @apiName PutUserEmail
  * @apiGroup User
- * @apiPermission anyone
+ * @apiPermission logined users
  * @apiVersion 0.0.1
  * 
- * @apiParam {String} id
  * @apiParam {String} act='modify','bind','unbind' 修改/绑定/解绑
  * @apiParam {String{1..50}} email 修改时为新邮箱，绑定/解绑时为旧邮箱
- * @apiParam {String{6..6}} code 6位验证码   
+ * @apiParam {String{6..6}} code 6位验证码（绑定/解绑时需要）   
  * 
  * @apiUse OperationSuccess
  */
@@ -207,11 +208,11 @@ exports.modifyEmail = function (req, res, next) {
  * @api {put} /users/password 用户修改密码
  * @apiName PutUserPassword
  * @apiGroup User
- * @apiPermission anyone
+ * @apiPermission logined users
  * @apiVersion 0.0.1
  * 
  * @apiParam {String{6..30}} password  新密码
- * @apiParam {String{6..6}} code
+ * @apiParam {String{6..6}} code 6位验证码
  * 
  * @apiUse OperationSuccess
  */
@@ -299,10 +300,15 @@ exports.modifyRelationship = function (req, res, next) {
 }
 
 /**
- * 用户修改微博数 - PUT
- * @apiParam {Object} req.body
- * @apiParam {String} req.body.act
- * @apiParam {String} req.body.name
+ * @api {put} /users/weibocount 用户修改微博数
+ * @apiName ModifyWeiboCount
+ * @apiGroup User
+ * @apiPermission longined users
+ * @apiVersion 0.0.1 
+ * 
+ * @apiParam {String} act='add','del' 发/删微博
+ * @apiParam {Date} time 最近微博发布时间，无则为0
+ * @apiParam {Transaction} t 事务
  */
 exports.modifyWeiboCount = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -407,9 +413,7 @@ exports.delGroup = function (req, res, next) {
  * @apiPermission anyone
  * @apiVersion 0.0.1
  * 
- * @apiParam {Number} id 被查询用户id
- * 
- * @apiUse OperationSuccess
+ * @apiUse ReturnedData
  */
 exports.getInfo = function (req, res, next) {
   let id = parseInt(req.params.id);
@@ -440,9 +444,7 @@ exports.getInfo = function (req, res, next) {
  * @apiPermission anyone
  * @apiVersion 0.0.1
  * 
- * @apiParam {Number} id 被查询用户id
- * 
- * @apiUse OperationSuccess
+ * @apiUse ReturnedData
  */
 exports.getInfoByName = function (req, res, next) {
   let name = req.params.name;
@@ -464,8 +466,15 @@ exports.getInfoByName = function (req, res, next) {
 }
 
 /**
- * @apiIgnore
  * @api {get} /users/acc/:acc 通过用户名或备注获取用户信息
+ * @apiName GetUserInfoByAcc
+ * @apiGroup User
+ * @apiPermission logined users
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {String} [range] 查询范围 'all' | 'follow' | 'fans'
+ * 
+ * @apiUse ReturnedData
  */
 exports.getInfoByAcc = function (req, res, next) {
   if (!req.session || !req.session.user) {
