@@ -51,7 +51,7 @@ module.exports = new class {
                 author: wbDetail.author,
                 content: wbDetail.content
             }) : '原微博已删除'
-        ));
+        )).tap(() => cache.hincrby(cacheKey.weiboReadCount(wbId)));
     }
 
     /**
@@ -379,17 +379,19 @@ module.exports = new class {
             attributes: ['id', 'readCount'],
             raw: true   
         }).map(wbObj => readCounts[wbObj.id] = wbObj.readCount)
-        .then(() => Promise.map(readCounts, (oldReadCount, wbId) => 
-            cache.hget(cacheKey.weiboReadCount(wbId)).then(newReadCount =>
-                db.models.Weibo.update({
-                    readCount: _.max(oldReadCount, newReadCount)
-                }, {
-                    where: {id: wbId},
-                    fields: ['readCount'],
-                    raw: true
-                }) 
-            )
-        ));
+        .tap(() => Promise.map(readCounts, (oldReadCount, wbId) => {
+            if (oldReadCount) { 
+                return cache.hget(cacheKey.weiboReadCount(wbId)).then(newReadCount =>
+                    db.models.Weibo.update({
+                        readCount: _.max(oldReadCount, newReadCount)
+                    }, {
+                        where: {id: wbId},
+                        fields: ['readCount'],
+                        raw: true
+                    })
+                )
+            }
+        }));
     }
 }();
  
