@@ -64,7 +64,7 @@ module.exports = new class {
 
         if (wbInfo.scope) {
             if (!_.isNaN(+wbInfo.scope) || wbInfo.scope.includes(',')) {
-                keyValues.scope = JSON.stringify(_.words(wbInfo.scope).map(num => +num));
+                keyValues.scope = JSON.stringify(_.split(wbInfo.scope, ',').map(num => +num));
             } else {
                 keyValues.scope = wbInfo.scope;
             }
