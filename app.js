@@ -12,6 +12,7 @@ const res_api = require('./middlewares/res_api');
 const routes = require('./routes');
 const db = require('./models');
 const notFound = require('./middlewares/notFound');
+const cron_jobs = require('./lib/cron');
 
 const app = express();
 
@@ -43,5 +44,7 @@ app.use(require('cors')({
 
 app.use(routes);
 app.use(notFound);
+
+cron_jobs();
 
 module.exports = app;

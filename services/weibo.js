@@ -17,7 +17,12 @@ module.exports = new class {
      */
     getWeiboDetail(wbId, options = {}) {
         return cache.hget(cacheKey.weiboDetail(wbId), () => db.models.Weibo.findById(wbId, {raw: true}))
-            .tap(wbObj => {
+            .then(wbObj => 
+                cache.hincrby(cacheKey.weiboReadCount(wbId)).then(wbReadCount => {
+                    wbObj.readCount = wbReadCount;
+                    return wbObj;
+                })
+            ).tap(wbObj => {
                 if (options.needUserDetail) {
                     return userService.getInfoByName(wbObj.author)
                         .then(userInfo => wbObj.author = userInfo);
@@ -362,4 +367,29 @@ module.exports = new class {
             needOriginalWeiboDetail: true
         }));
     }
+
+    /**
+     * 同步缓存中的微博阅读量到数据库
+     */
+    syncWeiboReadCount() {
+        let readCounts = [];
+
+        return db.models.Weibo.findAll({
+            where: { deleteTime: 0 },
+            attributes: ['id', 'readCount'],
+            raw: true   
+        }).map(wbObj => readCounts[wbObj.id] = wbObj.readCount)
+        .then(() => Promise.map(readCounts, (oldReadCount, wbId) => 
+            cache.hget(cacheKey.weiboReadCount(wbId)).then(newReadCount =>
+                db.models.Weibo.update({
+                    readCount: _.max(oldReadCount, newReadCount)
+                }, {
+                    where: {id: wbId},
+                    fields: ['readCount'],
+                    raw: true
+                }) 
+            )
+        ));
+    }
 }();
+ 
