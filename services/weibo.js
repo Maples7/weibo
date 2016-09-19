@@ -314,15 +314,14 @@ module.exports = new class {
     /**
      * 获取微博列表
      */
-    getIndexWeiboList(options) {
+    getCommonWeiboList(where, options) {
         return db.models.Weibo.findAll({
-            where: {deleteTime: 0},
+            where: where,
             attributes: ['id', 'scope', 'author'],
             order: [['createTime', 'DESC']],
             raw: true
         }).then(wbObjs => 
-            options.user ? 
-                wbObjs.filter(wbObj => {
+            options.user ? wbObjs.filter(wbObj => {
                     if (!wbObj.scope) {
                         return true;
                     } else {
@@ -338,13 +337,12 @@ module.exports = new class {
                             ));
                         }
                     }
-                })
-                : wbObjs
+                }) : wbObjs.filter(wbObj => !wbObj.scope)
         ).then(wbObjs => 
             _.map(_.slice(wbObjs, options.offset, options.offset + options.limit), 'id')
         ).map(wbId => this.getWeiboDetail(wbId, {
             needUserDetail: true,
-            needOriginalWeiboDetail: true
+            needOriginalWeiboDetail: options.needOriginalWeiboDetail || true
         }));
     }
 

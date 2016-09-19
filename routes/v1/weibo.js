@@ -26,6 +26,9 @@ router.route('/weibos/:wbId(\\d+)/comments')
     .get(weibo.getCommentList)
     .post(check.checkLogin, weibo.addComment);
 
+router.route('/weibos/:wbId(\\d+)/forwardings')
+    .get(weiboList.getForwardingWeiboList);
+
 router.route('/comments/:cmId(\\d+)/favor')
     .all(check.checkLogin)
     .post(weibo.addCommentFavor)

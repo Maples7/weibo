@@ -23,11 +23,13 @@ exports.getIndexWeiboList = (req, res, next) => {
         group: req.query.group,
         limit: req.query.limit || 20,
         offset: req.query.offset || 0,
-        user: req.session.user
+        user: req.session.user,
+        needOriginalWeiboDetail: true
     };
 
-    return weibo.getIndexWeiboList(options)
-        .then(data => res.api(data)).catch(err => res.api_error(err.message));
+    return weibo.getCommonWeiboList({
+        deleteTime: 0
+    }, options).then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
 
 /**
@@ -51,3 +53,29 @@ exports.getSelfWeiboList = (req, res, next) => {
     return weibo.getSelfWeiboList(req.session.user.name, options)
         .then(data => res.api(data)).catch(err => res.api_error(err.message));
 };
+
+/**
+ * @api {get} /weibos/:wbId/forwardings 获取某微博的转发列表
+ * @apiName getForwardingWeiboList
+ * @apiGroup WeiboList
+ * @apiPermission anyone|LoginUser
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Number}           [limit=20]   
+ * @apiParam {Number}           [offset=0]
+ * 
+ * @apiUse GetForwardingWeiboListSuccess
+ */
+exports.getForwardingWeiboList = (req, res, next) => {
+    let wbId = req.params.wbId;
+
+    return weibo.getCommonWeiboList({
+        deleteTime: 0,
+        originalId: wbId
+    }, {
+        limit: req.query.limit || 20,
+        offset: req.query.offset || 0,
+        user: req.session.user,
+        needOriginalWeiboDetail: false
+    }).then(data => res.api(data)).catch(err => res.api_error(err.message));
+}
