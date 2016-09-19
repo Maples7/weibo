@@ -251,6 +251,27 @@
  *      }
  */
 
+/**
+ * @apiDefine GetWeiboFavorsSuccess
+ * @apiVersion 0.0.1
+ * 
+ * @apiSuccessExample {json} Success-Response:
+ *      HTTP/1.1 200 OK
+ *      {
+ *          "data": [
+ *             {
+ *                  "name": "Maples7",
+ *                  "headPic": "",
+ *             }
+ *          ],
+ *          "status": {
+ *              "code": 0,
+ *              "msg": "request success!"
+ *          }
+ *      }
+ */
+
+
 // ------------------------------------------------------------------------------------------
 // Current Errors.
 // ------------------------------------------------------------------------------------------

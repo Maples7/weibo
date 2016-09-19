@@ -177,6 +177,27 @@ exports.deleteWeiboFavor = (req, res, next) => {
 };
 
 /**
+ * @api {get} /weibos/:wbId/favor 获取单个微博的点赞用户列表
+ * @apiName GetWeiboFavors
+ * @apiGroup Weibo
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Number}      [limit=20]           单次请求条数
+ * @apiParam {Number}      [offset=0]           偏移量
+ * 
+ * @apiUse GetWeiboFavorsSuccess
+ */
+exports.getWeiboFavors = (req, res, next) => {
+    let wbId = req.params.wbId;
+
+    return weibo.getWeiboFavors(wbId, {
+        limit: req.query.limit || 20,
+        offset: req.query.offset || 0
+    }).then(data => res.api(data)).catch(err => res.api_error(err.message));
+};
+
+/**
  * @api {post} /comments/:cmId/favor 给某评论点赞
  * @apiName PostCommentFavor
  * @apiGroup Weibo

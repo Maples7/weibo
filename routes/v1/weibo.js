@@ -35,7 +35,7 @@ router.route('/comments/:cmId(\\d+)/favor')
     .delete(weibo.deleteCommentFavor);
 
 router.route('/weibos/:wbId(\\d+)/favor')
-    .all(check.checkLogin)
-    .post(weibo.addWeiboFavor)
-    .delete(weibo.deleteWeiboFavor); 
+    .get(weibo.getWeiboFavors)
+    .post(check.checkLogin, weibo.addWeiboFavor)
+    .delete(check.checkLogin, weibo.deleteWeiboFavor); 
 

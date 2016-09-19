@@ -294,6 +294,24 @@ module.exports = new class {
     }
 
     /**
+     * 获取单个微博的点赞用户列表
+     */
+    getWeiboFavors(wbId, options) {
+        return db.models.Favor.findAll({
+            raw: true,
+            where: {itemId: wbId, itemType: 'weibo'},
+            attributes: ['userName'],
+            order: [['createTime', 'DESC']],
+            limit: options.limit,
+            offset: options.offset
+        }).map(wbFavorObj => userService.getInfoByName(wbFavorObj.userName))
+        .then(users => _.map(users, user => ({
+            name: user.name,
+            headPic: user.headPic
+        })));
+    }
+
+    /**
      * 更新计数
      */
     [_updateCount](table, field, id, operation, options) {
