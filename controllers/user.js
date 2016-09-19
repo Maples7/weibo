@@ -238,13 +238,16 @@ exports.modifyPassword = function (req, res, next) {
  * @api {put} /users/relationship 用户修改关注表
  * @apiName PutUserRelationship
  * @apiGroup User
- * @apiPermission anyone
+ * @apiPermission logined users
  * @apiVersion 0.0.1
  * 
- * @apiParam {String} fans
- * @apiParam {String} follows
- * @apiParam {String} [remark] 备注名
- * @apiParam {String} [group]  分组数组
+ * @apiParam {String='follow','unfollow','remark','black','unblack','regroup','remove'} 操作类型
+ * @apiParam {Number} [fans] 关注/取关/备注/拉黑/移黑/改组 的对象用户id
+ * @apiParam {Number} [follows] 移粉 的对象用户id
+ * @apiParam {String} [remark] 备注 的对象备注名
+ * @apiParam {String} [groups] 关注/改组 的对象分组id组成的数组
+ * 
+ * @apiUse OperationSuccess
  */
 exports.modifyRelationship = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -326,14 +329,14 @@ exports.modifyWeiboCount = function (req, res, next) {
 }
 
 /**
- * @api {post} /users/addgroup 用户新建分组
- * @apiName PostUserGroup
+ * @api {post} /users/group 用户新建分组
+ * @apiName AddGroup
  * @apiGroup User
- * @apiPermission anyone
+ * @apiPermission logined users
  * @apiVersion 0.0.1
  * 
  * @apiParam {String} name 新分组名
- * @apiParam {String} [description]
+ * @apiParam {String} [description] 分组描述
  * @apiParam {Boolean} [public] 分组公开性
  * 
  * @apiUse OperationSuccess
@@ -355,14 +358,15 @@ exports.addGroup = function (req, res, next) {
 
 
 /**
- * @api {put} /users/modgroup 修改分组信息
- * @apiName PutUserGroup
+ * @api {put} /users/group/:gid 修改分组信息
+ * @apiName ModifyGroup
  * @apiGroup User
- * @apiPermission anyone
+ * @apiPermission logined users
  * @apiVersion 0.0.1
  * 
- * @apiParam {Object} group {"name": 分组新名, "description": 分组新描述, "public": 分组公开性}
- * @apiParam {Number} old 要被修改的分组id
+ * @apiParam {String} [name] 新分组名
+ * @apiParam {String} [description] 新分组描述
+ * @apiParam {Boolean} [public] 新分组公开性
  * 
  * @apiUse OperationSuccess
  */
@@ -387,13 +391,11 @@ exports.modifyGroup = function (req, res, next) {
 }
 
 /**
- * @api {put} /users/delgroup 删除分组
- * @apiName DelUserGroup
+ * @api {delete} /users/group/:gid 删除分组
+ * @apiName DelGroup
  * @apiGroup User
- * @apiPermission anyone
+ * @apiPermission logined users
  * @apiVersion 0.0.1
- * 
- * @apiParam {number} gid 要被删除的分组id
  * 
  * @apiUse OperationSuccess
  */
@@ -502,7 +504,17 @@ exports.getInfoByAcc = function (req, res, next) {
 }
 
 /**
- * 批量管理 - PUT
+ * @api {put} /users/relationship 批量管理
+ * @apiName BatchManage
+ * @apiGroup User
+ * @apiPermission logined users
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {String='regroup','unfollow'} act 操作行为
+ * @apiParam {Array} follow 被操作的用户id
+ * @apiParam {Array} [groups] 改组时需要被分配到的新分组id表
+ * 
+ * @apiUse OperationSuccess
  */
 exports.batchManage = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -533,8 +545,16 @@ exports.batchManage = function (req, res, next) {
 }
 
 /**
- * 用户获取关注列表 - GET
- * @apiParam {String} req.query.name
+ * @api {get} /users/:id/follow 用户获取关注列表
+ * @apiName GetFollow
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Number} page 页码
+ * @apiParam {String='time','fans','each','name','update'} [sort] 排序方式（关注时间/粉丝数/互相关注/昵称首字母/最近更新）
+ * 
+ * @apiUse ReturnedData
  */
 exports.getFollow = function (req, res, next) {
   let id = req.params.id;
@@ -550,8 +570,16 @@ exports.getFollow = function (req, res, next) {
 }
 
 /**
- * 用户获取粉丝列表 - GET
- * @apiParam {String} req.query.name
+ * @api {get} /users/:id/fans 用户获取粉丝列表
+ * @apiName GetFans
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Number} page 页码
+ * @apiParam {String='time','fans','each','not'} [sort] 排序方式（关注时间/粉丝数/互相关注/我未关注）
+ * 
+ * @apiUse ReturnedData
  */
 exports.getFans = function (req, res, next) {
   let id = req.params.id;
@@ -567,8 +595,13 @@ exports.getFans = function (req, res, next) {
 }
 
 /**
- * 用户获取分组列表 - GET
- * @apiParam {String} req.query.name
+ * @api {get} /users/:id/groups 获取全部分组
+ * @apiName GetGroups
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiUse ReturnedData
  */
 exports.getGroups = function (req, res, next) {
   let id = parseInt(req.params.id);
@@ -582,9 +615,13 @@ exports.getGroups = function (req, res, next) {
 }
 
 /**
- * 用户获取分组描述 - GET
- * @apiParam {String} req.query.name
- * @apiParam {String} req.query.group
+ * @api {get} /users/group/:gid 用户获取分组描述
+ * @apiName GetGroupDetail
+ * @apiGroup User
+ * @apiPermission logined users
+ * @apiVersion 0.0.1
+ * 
+ * @apiUse ReturnedData
  */
 exports.getGroupDetail = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -596,9 +633,15 @@ exports.getGroupDetail = function (req, res, next) {
 }
 
 /**
- * 用户获取分组成员 - GET
- * @apiParam {String} req.query.name
- * @apiParam {String} req.query.group
+ * @api {get} /users/:id/member/:gid 用户获取分组成员
+ * @apiName GetGroupMember
+ * @apiGroup User
+ * @apiPermission anyone
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Number} [page] 页码
+ * 
+ * @apiUse ReturnedData
  */
 exports.getGroupMember = function (req, res, next) {
   let member = [];
@@ -620,7 +663,15 @@ exports.getGroupMember = function (req, res, next) {
 }
 
 /**
- * 获取与目标用户的共同关注 - GET
+ * @api {get} /users/:id/comfollow 获取与目标用户的共同关注
+ * @apiName GetCommonFollow
+ * @apiGroup User
+ * @apiPermission logined users
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Number} [page] 页码
+ * 
+ * @apiUse ReturnedData
  */
 exports.getCommonFollow = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -643,7 +694,15 @@ exports.getCommonFollow = function (req, res, next) {
 }
 
 /**
- * 获取与目标用户的共同关注 - GET
+ * @api {get} /users/:id/comfans 获取与目标用户的共同粉丝
+ * @apiName GetCommonFans
+ * @apiGroup User
+ * @apiPermission logined users
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Number} [page] 页码
+ * 
+ * @apiUse ReturnedData
  */
 exports.getCommonFans = function (req, res, next) {
   if (!req.session || !req.session.user) {
@@ -666,7 +725,15 @@ exports.getCommonFans = function (req, res, next) {
 }
 
 /**
- * 获取自己的黑名单 - GET
+ * @api {get} /users/black 获取自己的黑名单
+ * @apiName GetBlack
+ * @apiGroup User
+ * @apiPermission logined users
+ * @apiVersion 0.0.1
+ * 
+ * @apiParam {Number} [page] 页码
+ * 
+ * @apiUse ReturnedData
  */
 exports.getBlack = function (req, res, next) {
   if (!req.session || !req.session.user) {

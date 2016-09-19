@@ -384,7 +384,7 @@ act: 指明操作 'follow' | 'unfollow' | 'remark' | 'black' | 'unblack' | 'regr
 
 返回：
 
-## users/:relationship
+## users/relationship
 （全部关注/某分组中）批量管理 - PUT
 （需要登录）
 
