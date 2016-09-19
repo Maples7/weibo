@@ -407,6 +407,7 @@ exports.delGroup = function (req, res, next) {
 }
 
 /**
+ * @apiIgnore
  * @api {get} /users/:id 通过id获取用户信息
  * @apiName GetUserInfoById
  * @apiGroup User
@@ -438,6 +439,7 @@ exports.getInfo = function (req, res, next) {
 }
 
 /**
+ * @apiIgnore
  * @api {get} /users/name/:name 通过用户名获取用户信息
  * @apiName GetUserInfoByName
  * @apiGroup User
@@ -466,6 +468,7 @@ exports.getInfoByName = function (req, res, next) {
 }
 
 /**
+ * @apiIgnore
  * @api {get} /users/acc/:acc 通过用户名或备注获取用户信息
  * @apiName GetUserInfoByAcc
  * @apiGroup User
