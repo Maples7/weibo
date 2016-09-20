@@ -144,23 +144,15 @@ function register(userObj) {
       createTime: Date.now() 
     });
   })
-  .then(ret => db.Group.create({creator: ret.id, name: '未分组'})
-  .then(ret => db.Group.create({creator: ret.id, name: '黑名单'})));
+  .then(ret => db.Group.create({creator: ret.id, name: '未分组'}).then(() => ret))
+  .then(ret => db.Group.create({creator: ret.id, name: '黑名单'}));
 }
 
 /**
  * modifyInfo 修改个人信息
  */
 function modifyInfo(id, userObj) {
-  return db.User.update(userObj, {where: {id: id}, returning: true})
-  .then(function (ret) {
-    if (ret[0]) {
-      return ret[1];
-    }
-    else {
-      throw new Error('修改信息失败');
-    }
-  });
+  return db.User.update(userObj, {where: {id: id}, returning: true});
 }
 
 /**
@@ -649,15 +641,35 @@ function getInfoByAcc(acc, me, range) {
         return follow;
       }));
     default :
+      // db.User.findAll().then(ret => {
+      //   if (ret) {
+      //     Promise.map(ret, r => r = r.dataValues).then(ret => console.log(ret));
+      //   }
+      // });
       return db.Relationship.findAll({where: {fans: me, remark: acc}})
       .then(fos => {
-        fos = _.uniq(fos);
-        return Promise.map(fos, f => {
-          return User.findOne({where: {id: f.follow}})
-          .then(ret => {f = ret});
-        }).then((fos) => db.User.findOne({where: {name: acc}}).then(ret => fos.push(ret.dataValues)))
-        .then(() => fos);
-      });
+        if (fos.length) {
+          return Promise.map(fos , f => {f = f.dataValues.follow})
+          .then(fos => {
+            fos = _.uniq(fos);
+            return fos;
+          })
+          .then(fos => Promise.map(fos, f => {
+            return User.findOne({where: {id: f}})
+            .then(ret => {f = ret.dataValues});
+            })
+          );
+        }
+        return fos;
+      })
+      .then(fos => db.User.findOne({where: {name: acc}})
+        .then(ret => {
+          if (ret) {
+            fos.push(ret.dataValues);
+          }
+          return fos;
+        })
+      );
   }
 }
 

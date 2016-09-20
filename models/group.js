@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Group', {
     allowNull: false,
     type: DataTypes.INTEGER.UNSIGNED,
     references: {model: 'Users', key: 'id'},
-    onDelete: 'CASCADE',
+    // onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
     comment: '分组创建者'
   },

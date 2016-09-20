@@ -16,7 +16,7 @@ router.get('/logout', user.logout);
 router.get('/users/:id', user.getInfo);
 router.get('/users/name/:name', user.getInfoByName);
 router.get('/users/acc/:acc', user.getInfoByAcc);
-router.put('/users/:id', user.modifyInfo);
+router.put('/users/info', user.modifyInfo);
 
 // 邮箱与密码
 router.get('/users/email', user.sendMail);

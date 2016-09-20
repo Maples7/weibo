@@ -122,11 +122,21 @@ exports.modifyInfo = function (req, res, next) {
   if (!req.session || !req.session.user) {
     return res.api_error('请登录后再修改信息');
   } // check.checkLogin
-  if (req.session.user.id !== id) {
-    return res.api_error('您无权修改他人信息');
-  }
   let uid = req.session.user.id;
-  return user.modifyInfo(uid, req.body)
+  let newInfo = {};
+  if (req.body.name) {
+    newInfo.name = req.body.name;
+  }
+  if (req.body.headPic) {
+    newInfo.headPic = req.body.headPic;
+  }
+  if (req.body.sex) {
+    newInfo.sex = req.body.sex;
+  }
+  if (req.body.bio) {
+    newInfo.bio = req.body.bio;
+  }
+  return user.modifyInfo(uid, newInfo)
   .then(function (ret) {
     req.session.user = ret;
     return res.api('信息修改成功');
@@ -320,9 +330,11 @@ exports.modifyWeiboCount = function (req, res, next) {
   let param = {
     action: req.body.act,
     uid: req.session.user.id,
-    time: req.body.time,
-    t: req.body.t
+    time: req.body.time
   };
+  if (req.body.t) {
+    param.t = req.body.t;
+  }
   return user.modifyWeiboCount(param)
   .then(ret => res.api('微博计数更新成功'))
   .catch(err => res.api_error(err.message));
@@ -428,7 +440,7 @@ exports.getInfo = function (req, res, next) {
         if (results.remark !== '' && results.remark !== null) {
           result.remark = results.remark;
         }
-        if (results.groups.length) {
+        if (results.groups) {
           result.groups = results.groups;
         }
         return result;
@@ -495,7 +507,7 @@ exports.getInfoByAcc = function (req, res, next) {
         if (!remark) {
           r.remark = remark;
         }
-        return null;
+        return r;
       });
     });
   })
