@@ -57,7 +57,7 @@ password: 密码 String
   }
 }
 
-## /users/:id
+## /users/info/:id
 通过id获取用户信息 - GET
 
 返回：
@@ -309,7 +309,7 @@ name: 新分组名 String
   }
 }
 
-## /users/:id/member/:gid    
+## /users/member/:id/:gid    
 分组成员 - GET
 
 传入(query):
@@ -343,7 +343,7 @@ name: 新分组名 String
 * 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注、
       及groups属性，值为含分组名及分组id的JSON数组
 
-## /users/:id/groups
+## /users/groups/:id
 全部分组 - GET 
 
 传入(query):
@@ -371,8 +371,8 @@ name: 新分组名 String
 * 看自己的全部分组会包含'未分组'和'黑名单'在内的非公开非组，会有mem属性，内含至多三个元素，为该分组内头三个成员的个人信息
 * 看他人的全部分组只会含公开分组，不含mem属性
 
-## /users/:id/relationship
-关注、取关、备注、拉黑、移黑、改组、移粉 - PUT    
+## /users/relationship
+关注、取关、备注、拉黑、移黑、改组、移粉 - POST    
 （需要登录）
 
 传入(body):    
@@ -396,7 +396,7 @@ follow: 被操作的用户id Array
 返回：
 
 
-## /users/:id/follow
+## /users/follow/:id
 全部关注 - GET
 
 传入(query):
@@ -431,7 +431,7 @@ follow: 被操作的用户id Array
 }
 * follow 为结果数组，total为总共页数
 
-## /users/:id/fans
+## /users/fans/:id
 全部粉丝 - GET
 
 传入(query):
@@ -462,7 +462,7 @@ follow: 被操作的用户id Array
 }
 * fans 为结果数组，total为总共页数
 
-## /users/:id/comfollow
+## /users/comfollow/:id
 共同关注 - GET
 （需要登录）
 
@@ -497,7 +497,7 @@ follow: 被操作的用户id Array
 * 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注、
       及groups属性，值为含分组名及分组id的JSON数组
 
-## /users/:id/comfans
+## /users/comfans/:id
 共同粉丝 - GET
 [page: 页码]
 

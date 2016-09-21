@@ -175,8 +175,9 @@ function bindEmail(id, email, code, flag) {
   return db.Code.findOne({where: {email: email, code: parseInt(code)}})
   .then(function (ret) {
     if (ret) {
-      if (Date.now() - ret.createTime > 3600 * 5) {
+      if (Date.now() - ret.dataValues.createTime > 60000 * 15) {
         return ret.destroy().then(() => {throw new Error('验证码已过期')});
+        // throw new Error('验证码已过期');
       }
       return db.User.findOne({where: {id: id, email: email}})
       .then(r => r.updateAttributes({emailConfirm: flag}))
@@ -196,8 +197,9 @@ function modifyPassword(email, password, code) {
   return db.Code.findOne({where: {email: email, code: code}})
   .then(function (ret) {
     if (ret) {
-      if (Date.now() - ret.createTime > 3600 * 5) {
+      if (Date.now() - ret.dataValues.createTime > 60000 * 15) {
         return ret.destroy().then(() => {throw new Error('验证码已过期')});
+        // throw new Error('验证码已过期');
       }
       return ret.destroy()
       .then(() => db.User.findOne({where: {email: email}}))
@@ -482,8 +484,8 @@ function remove(info) {
  */
 function modifyWeiboCount(param) {
   return db.User.findOne({
-    where: {name: param.name},
-    transaction: param.t
+    where: {id: param.uid}
+    // transaction: param.t || {}
   })
   .then(function (ret) {
     if (param.action === 'add') {
@@ -532,9 +534,9 @@ function addGroup(group, creator) {
 
 /**
  * modifyGroup 更新分组信息
- * @param {String} name
- * @param {String} oldGroup
- * @param {Object} newGroup
+ * @param {Number} creator
+ * @param {Number} gid
+ * @param {Object} group
  */
 function modifyGroup(group, creator, gid) {
   return db.Group.findOne({
@@ -544,7 +546,7 @@ function modifyGroup(group, creator, gid) {
     }
   })
   .then(function (ret) {
-    if (ret && gid !== group.id) {
+    if (ret && gid != ret.dataValues.id) {
       throw new Error('分组名已被使用');
     }
     // 更新分组列表里该分组信息
@@ -641,11 +643,6 @@ function getInfoByAcc(acc, me, range) {
         return follow;
       }));
     default :
-      // db.User.findAll().then(ret => {
-      //   if (ret) {
-      //     Promise.map(ret, r => r = r.dataValues).then(ret => console.log(ret));
-      //   }
-      // });
       return db.Relationship.findAll({where: {fans: me, remark: acc}})
       .then(fos => {
         if (fos.length) {
@@ -667,6 +664,7 @@ function getInfoByAcc(acc, me, range) {
           if (ret) {
             fos.push(ret.dataValues);
           }
+          fos = _.uniq(fos);
           return fos;
         })
       );
@@ -836,12 +834,11 @@ function getGroupDetail(id, gid) {
     if (!ret) {
       throw new Error('该分组不存在');
     }
-    if (ret.creator !== id && !ret.public) {
+    if (ret.dataValues.creator !== id && !ret.dataValues.public) {
       throw new Error('您无权查看该分组');
     }
     return ret.dataValues;
-  })
-  .catch(err => err);
+  });
 }
 
 /**
@@ -856,8 +853,7 @@ function getGroupMember(params) {
     else {
       return db.Relationship.findAll({where: {group: params.id}});
     }
-  })
-  .then(ret => ret ? ret.dataValues : []);
+  });
 }
 
 /**

@@ -119,7 +119,7 @@ exports.logout = function (req, res, next) {
  * @apiUse OperationSuccess
  */
 exports.modifyInfo = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     return res.api_error('请登录后再修改信息');
   } // check.checkLogin
   let uid = req.session.user.id;
@@ -145,7 +145,7 @@ exports.modifyInfo = function (req, res, next) {
 }
 
 /**
- * @api {get} /users/needmail 发起发送邮箱请求
+ * @api {get} /users/email 发起发送邮箱请求
  * @apiName GetUserEmail
  * @apiGroup User
  * @apiPermission logined users
@@ -156,7 +156,7 @@ exports.modifyInfo = function (req, res, next) {
  * @apiUse OperationSuccess
  */
 exports.sendMail = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     return res.api_error('请登录后再修改信息');
   } // check.checkLogin
   let name = req.session.user.name;
@@ -182,7 +182,7 @@ exports.sendMail = function (req, res, next) {
  * @apiUse OperationSuccess
  */
 exports.modifyEmail = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     return res.api_error('请登录后再修改信息');
   }
   let act = req.body.act;
@@ -227,7 +227,7 @@ exports.modifyEmail = function (req, res, next) {
  * @apiUse OperationSuccess
  */
 exports.modifyPassword = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     return res.api_error('请登录后再修改信息');
   }
   // 获取当前用户的邮箱
@@ -245,8 +245,8 @@ exports.modifyPassword = function (req, res, next) {
 
 /**
  * @apiIgnore
- * @api {put} /users/relationship 用户修改关注表
- * @apiName PutUserRelationship
+ * @api {post} /users/relationship 用户修改关注表
+ * @apiName ModifyRelationship
  * @apiGroup User
  * @apiPermission logined users
  * @apiVersion 0.0.1
@@ -260,7 +260,7 @@ exports.modifyPassword = function (req, res, next) {
  * @apiUse OperationSuccess
  */
 exports.modifyRelationship = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     return res.api_error('请登录后再修改信息');
   }
   if (req.session.user.id === req.body.follow || req.session.user.id === req.body.fans) {
@@ -324,7 +324,7 @@ exports.modifyRelationship = function (req, res, next) {
  * @apiParam {Transaction} t 事务
  */
 exports.modifyWeiboCount = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     return res.api_error('请登录后再修改信息');
   }
   let param = {
@@ -354,7 +354,7 @@ exports.modifyWeiboCount = function (req, res, next) {
  * @apiUse OperationSuccess
  */
 exports.addGroup = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     return res.api_error('请登录后再修改信息');
   }
   if (!req.body.name) {
@@ -383,7 +383,7 @@ exports.addGroup = function (req, res, next) {
  * @apiUse OperationSuccess
  */
 exports.modifyGroup = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     return res.api_error('请登录后再修改信息');
   }
   if (typeof req.body !== 'object') {
@@ -412,7 +412,7 @@ exports.modifyGroup = function (req, res, next) {
  * @apiUse OperationSuccess
  */
 exports.delGroup = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     return res.api_error('请登录后再修改信息');
   }
   return user.delGroup(req.params.gid, req.session.user.id)
@@ -422,7 +422,7 @@ exports.delGroup = function (req, res, next) {
 
 /**
  * @apiIgnore
- * @api {get} /users/:id 通过id获取用户信息
+ * @api {get} /users/info/:id 通过id获取用户信息
  * @apiName GetUserInfoById
  * @apiGroup User
  * @apiPermission anyone
@@ -494,7 +494,7 @@ exports.getInfoByName = function (req, res, next) {
  * @apiUse ReturnedData
  */
 exports.getInfoByAcc = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     return res.api_error('请登录后查找好友');
   }
   let acc = req.params.acc;
@@ -529,7 +529,7 @@ exports.getInfoByAcc = function (req, res, next) {
  * @apiUse OperationSuccess
  */
 exports.batchManage = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     return res.api_error('请登录后再批量管理');
   }
   let act = req.body.act;
@@ -557,7 +557,7 @@ exports.batchManage = function (req, res, next) {
 }
 
 /**
- * @api {get} /users/:id/follow 用户获取关注列表
+ * @api {get} /users/follow/:id 用户获取关注列表
  * @apiName GetFollow
  * @apiGroup User
  * @apiPermission anyone
@@ -582,7 +582,7 @@ exports.getFollow = function (req, res, next) {
 }
 
 /**
- * @api {get} /users/:id/fans 用户获取粉丝列表
+ * @api {get} /users/fans/:id 用户获取粉丝列表
  * @apiName GetFans
  * @apiGroup User
  * @apiPermission anyone
@@ -607,7 +607,7 @@ exports.getFans = function (req, res, next) {
 }
 
 /**
- * @api {get} /users/:id/groups 获取全部分组
+ * @api {get} /users/groups/:id 获取全部分组
  * @apiName GetGroups
  * @apiGroup User
  * @apiPermission anyone
@@ -618,7 +618,7 @@ exports.getFans = function (req, res, next) {
 exports.getGroups = function (req, res, next) {
   let id = parseInt(req.params.id);
   let where = {creator: id};
-  if (req.params.id !== req.session.user.id) {
+  if (id !== req.session.user.id) {
     where.public = true;
   }
   return user.getGroups(where)
@@ -636,7 +636,7 @@ exports.getGroups = function (req, res, next) {
  * @apiUse ReturnedData
  */
 exports.getGroupDetail = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     throw new Error('请登录后查看分组');
   }
   return user.getGroupDetail(req.session.user.id, req.params.gid)
@@ -645,7 +645,7 @@ exports.getGroupDetail = function (req, res, next) {
 }
 
 /**
- * @api {get} /users/:id/member/:gid 用户获取分组成员
+ * @api {get} /users/member/:id/:gid 用户获取分组成员
  * @apiName GetGroupMember
  * @apiGroup User
  * @apiPermission anyone
@@ -660,22 +660,29 @@ exports.getGroupMember = function (req, res, next) {
   let page = req.query.page - 1 || 0;
   let limit = 30;
   let params = {id: req.params.gid};
-  if (!req.session || !req.seesion.user || req.seesion.user.id != req.params.id) {
+  if (!req.session || !req.session.user || !req.session.user.id || req.session.user.id != req.params.id) {
     params.public = true;
   }
   return user.getGroupMember(params)
-  .then(ret => Promise.each(ret, r => {
-    return getInfo(r.follow).then(re => common.push(re));
-  }))
+  .then(ret => {
+    console.log(ret);
+    if (ret.length) {
+      return member;
+    }
+    return Promise.each(ret, r => {
+      // TO-DO: 是否互粉
+      return getInfo(r.dataValues.follow).then(re => member.push(re));
+    })
+  })
   .then(() => res.api({
-    total: Math.ceil(common.length / limit),
-    member: common.slice(page * limit, (page + 1) * limit)
+    total: Math.ceil(member.length / limit),
+    member: member.slice(page * limit, (page + 1) * limit)
   }))
   .catch(err => res.api_error(err.message));
 }
 
 /**
- * @api {get} /users/:id/comfollow 获取与目标用户的共同关注
+ * @api {get} /users/comfollow/:id 获取与目标用户的共同关注
  * @apiName GetCommonFollow
  * @apiGroup User
  * @apiPermission logined users
@@ -686,7 +693,7 @@ exports.getGroupMember = function (req, res, next) {
  * @apiUse ReturnedData
  */
 exports.getCommonFollow = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     throw new Error('请登录后查看共同关注');
   }
   let id = req.session.user.id;
@@ -706,7 +713,7 @@ exports.getCommonFollow = function (req, res, next) {
 }
 
 /**
- * @api {get} /users/:id/comfans 获取与目标用户的共同粉丝
+ * @api {get} /users/comfans/:id 获取与目标用户的共同粉丝
  * @apiName GetCommonFans
  * @apiGroup User
  * @apiPermission logined users
@@ -717,7 +724,7 @@ exports.getCommonFollow = function (req, res, next) {
  * @apiUse ReturnedData
  */
 exports.getCommonFans = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     throw new Error('请登录后查看共同粉丝');
   }
   let id = req.session.user.id;
@@ -748,7 +755,7 @@ exports.getCommonFans = function (req, res, next) {
  * @apiUse ReturnedData
  */
 exports.getBlack = function (req, res, next) {
-  if (!req.session || !req.session.user) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
     throw new Error('请登录后查看黑名单');
   }
   let id = req.session.user.id;
