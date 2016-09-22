@@ -29,7 +29,10 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Relationship', {
   },
   group: {
     allowNull: true,
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER(255),
+    references: {model: 'Groups', key: 'id'},
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
     comment: '被关注者分组'
   }
 }, {

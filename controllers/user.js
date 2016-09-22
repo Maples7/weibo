@@ -360,7 +360,7 @@ exports.addGroup = function (req, res, next) {
   if (!req.body.name) {
     return res.api_error(...status.lackParams);
   }
-  if (req.body.name === '未分组' || req.body.name === '黑名单') {
+  if (req.body.name === '未分组' || req.body.name === '黑名单' || req.body.name === '全部关注') {
     return res.api_error('不可与固定分组重名');
   }
   return user.addGroup(req.body, req.session.user.id)
@@ -394,7 +394,7 @@ exports.modifyGroup = function (req, res, next) {
       return res.api_error('请规范传入的分组信息，不接收单引号，属性名请用双引号引出');
     }
   }
-  if (req.body.name === '未分组' || req.body.name === '黑名单') {
+  if (req.body.name === '未分组' || req.body.name === '黑名单' || req.body.name === '全部关注') {
     return res.api_error('不可与固定分组重名');
   }
   return user.modifyGroup(req.body, req.session.user.id, req.params.gid)
@@ -522,7 +522,7 @@ exports.getInfoByAcc = function (req, res, next) {
  * @apiPermission logined users
  * @apiVersion 0.0.1
  * 
- * @apiParam {String='regroup','unfollow'} act 操作行为
+ * @apiParam {String='regroup','unfollow','remove'} act 操作行为
  * @apiParam {Array} follow 被操作的用户id
  * @apiParam {Array} [groups] 改组时需要被分配到的新分组id表
  * 
@@ -538,18 +538,31 @@ exports.batchManage = function (req, res, next) {
   switch (act) {
     case 'regroup':
       let groups = req.body.groups;
-      for (let i = 0;i < follows.length;i++) {
-        follows[i] = {fans: fans, follow: follows[i], groups: groups};
-      }
-      return Promise.map(follows, follow => user.regroup(follow))
+      return Promise.map(follows, f => {
+        f = {fans: fans, follow: f, groups: groups};
+        return f;
+      })
+      .then(follows => Promise.map(follows, follow => user.regroup(follow)))
       .then(() => res.api('批量改组成功'))
       .catch(err => res.api_error(err.message));
     case 'unfollow':
-      for (let i = 0;i < follows.length;i++) {
-        follows[i] = {fans: fans, follow: follows[i]};
-      }
-      return Promise.map(follows, follow => user.unfollow(follow))
+      return Promise.map(follows, f => {
+        f = {fans: fans, follow: f};
+        return f;
+      })
+      .then(follows => Promise.map(follows, follow => user.unfollow(follow)))
       .then(() => res.api('批量取关成功'))
+      .catch(err => res.api_error(err.message));
+    case 'remove':
+      if (!req.body.gid) {
+        return res.api_error(...status.lackParams);
+      }
+      return Promise.map(follows, f => {
+        f = {fans: fans, follow: f, gid: parseInt(req.body.gid)};
+        return f;
+      })
+      .then(follows => Promise.map(follows, follow => user.outgroup(follow)))
+      .then(() => res.api('批量移出分组成功'))
       .catch(err => res.api_error(err.message));
     default :
       return res.api_error('未知操作');
@@ -670,8 +683,12 @@ exports.getGroupMember = function (req, res, next) {
       return member;
     }
     return Promise.each(ret, r => {
-      // TO-DO: 是否互粉
-      return getInfo(r.dataValues.follow).then(re => member.push(re));
+      return user.getInfo(r.id).then(re => {
+        re.status = r.status;
+        re.groups = r.groups;
+        return re;
+      })
+      .then(re => member.push(re));
     })
   })
   .then(() => res.api({
@@ -703,7 +720,7 @@ exports.getCommonFollow = function (req, res, next) {
   let common = [];
   return user.getCommonFollow(id, uid, page)
   .then(ret => Promise.each(ret, r => {
-    return getInfo(r).then(re => common.push(re));
+    return user.getInfo(r).then(re => common.push(re));
   }))
   .then(() => res.api({
     total: Math.ceil(common.length / limit),
@@ -734,7 +751,7 @@ exports.getCommonFans = function (req, res, next) {
   let common = [];
   return user.getCommonFans(id, uid, page)
   .then(ret => Promise.each(ret, r => {
-    return getInfo(r).then(re => common.push(re));
+    return user.getInfo(r).then(re => common.push(re));
   }))
   .then(() => res.api({
     total: Math.ceil(common.length / limit),
@@ -764,7 +781,7 @@ exports.getBlack = function (req, res, next) {
   let black = [];
   return user.getBlack(id)
   .then(ret => Promise.each(ret, r => {
-    return getInfo(r).then(re => black.push(re));
+    return user.getInfo(r).then(re => black.push(re));
   }))
   .then(() => res.api({
     total: Math.ceil(black.length / limit),

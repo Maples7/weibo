@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => sequelize.define('Group', {
   id: {
     allowNull: false,
-    type: DataTypes.INTEGER(100),
+    type: DataTypes.INTEGER(255),
     autoIncrement: true,
     primaryKey: true,
     comment: '分组id'

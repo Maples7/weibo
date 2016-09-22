@@ -389,9 +389,10 @@ act: 指明操作 'follow' | 'unfollow' | 'remark' | 'black' | 'unblack' | 'regr
 （需要登录）
 
 传入(body):
-act: 操作行为（改组/取关） 'regroup' | 'unfollow'
+act: 操作行为（改组/取关/移出此组） 'regroup' | 'unfollow' | 'remove'
 follow: 被操作的用户id Array
 [groups: 改组时需要被分配到的新分组id表 Array]
+[gid: 移出此组的分组id Number]
 
 返回：
 
