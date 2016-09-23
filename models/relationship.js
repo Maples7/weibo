@@ -22,20 +22,18 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Relationship', {
     onUpdate: 'CASCADE',
     comment: '被关注者',
   },
-  remark: {
-    allowNull: true,
-    type: DataTypes.STRING,
-    comment: '被关注者备注名'
-  },
+  // remark: {
+  //   allowNull: true,
+  //   type: DataTypes.STRING,
+  //   comment: '被关注者备注名'
+  // },
   group: {
     allowNull: true,
-    type: DataTypes.INTEGER(255),
-    references: {model: 'Groups', key: 'id'},
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-    comment: '被关注者分组'
+    type: DataTypes.INTEGER.UNSIGNED,
+    comment: '被关注者分组，0代表未分组'
   }
 }, {
+  tableName: 'relationship',
   indexes: [{
     name: 'uniq_fans_follow_group',
     fields: ['fans', 'follow', 'group'],

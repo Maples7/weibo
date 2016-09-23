@@ -7,5 +7,7 @@ module.exports = [
     './group',
     './code',
     './topic',
-    './message'
+    './message',
+    './black',
+    './nexus'
 ];

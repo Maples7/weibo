@@ -252,10 +252,10 @@ exports.modifyPassword = function (req, res, next) {
  * @apiVersion 0.0.1
  * 
  * @apiParam {String='follow','unfollow','remark','black','unblack','regroup','remove'} 操作类型
- * @apiParam {Number} [fans] 关注/取关/备注/拉黑/移黑/改组 的对象用户id
- * @apiParam {Number} [follows] 移粉 的对象用户id
+ * @apiParam {Number} [follow] 关注/取关/备注/拉黑/移黑/改组 的对象用户id
+ * @apiParam {Number} [fans] 移粉 的对象用户id
  * @apiParam {String} [remark] 备注 的对象备注名
- * @apiParam {String} [groups] 关注/改组 的对象分组id组成的数组
+ * @apiParam {String} [groups] 改组 的对象分组id组成的数组
  * 
  * @apiUse OperationSuccess
  */
@@ -263,7 +263,7 @@ exports.modifyRelationship = function (req, res, next) {
   if (!req.session || !req.session.user || !req.session.user.id) {
     return res.api_error('请登录后再修改信息');
   }
-  if (req.session.user.id === req.body.follow || req.session.user.id === req.body.fans) {
+  else if (req.session.user.id === req.body.follow || req.session.user.id === req.body.fans) {
     return res.api_error('不能对自己进行关系操作');
   }
   let action = req.body.act;
@@ -274,7 +274,7 @@ exports.modifyRelationship = function (req, res, next) {
       .then(ret => res.api('关注成功'))
       .catch(err => res.api_error(err.message));
     case 'unfollow':
-      req.body.fans = req.seesion.user.id;
+      req.body.fans = req.session.user.id;
       return user.unfollow(req.body)
       .then(ret => res.api('取消关注成功'))
       .catch(err => res.api_error(err.message));
@@ -283,7 +283,7 @@ exports.modifyRelationship = function (req, res, next) {
       if (req.session.user.id === req.body.follow) {
         return res.api_error('不能给自己设置备注');
       }
-      req.body.fans = req.seesion.user.id;
+      req.body.fans = req.session.user.id;
       return user.remark(req.body)
       .then(ret => res.api('修改备注成功'))
       .catch(err => res.api_error(err.message));
@@ -436,15 +436,16 @@ exports.getInfo = function (req, res, next) {
   .then(function (result) {
     if (req.session.user && id !== req.session.user.id) {
       return user.getRemark(req.session.user.id, id)
-      .then(function (results) {
-        if (results.remark !== '' && results.remark !== null) {
-          result.remark = results.remark;
-        }
-        if (results.groups) {
-          result.groups = results.groups;
-        }
+      .then(results => {
+        result.remark = results.remark;
+        result.groups = results.groups;
         return result;
-      });
+      })
+      .then(result => user.getEachOther(req.session.user.id, id)
+      .then(detail => {
+        result.status = detail.status;
+        return result;
+      }));
     }
     return result;
   })
@@ -465,15 +466,19 @@ exports.getInfo = function (req, res, next) {
 exports.getInfoByName = function (req, res, next) {
   let name = req.params.name;
   return user.getInfoByName(name)
-  .then(function (result) {
+  .then(result => {
     if (req.session.user && name !== req.session.user.name) {
       return user.getRemark(req.session.user.id, result.id)
       .then(remark => {
-        if (remark !== '' && remark !== null) {
-          result.remark = remark;
-        }
+        result.remark = remark.remark;
+        result.groups = remark.groups;
         return result;
-      });
+      })
+      .then(result => user.getEachOther(req.session.user.id, result.id)
+      .then(detail => {
+        result.status = detail.status;
+        return result;
+      }));
     }
     return result;
   })
@@ -500,15 +505,22 @@ exports.getInfoByAcc = function (req, res, next) {
   let acc = req.params.acc;
   let range = req.query.range;
   return user.getInfoByAcc(acc, req.session.user.id, range)
-  .then(function (results) {
+  .then(results => {
     return Promise.map(results, r => {
-      return user.getRemark(req.session.user.id, r.id)
-      .then(remark => {
-        if (!remark) {
-          r.remark = remark;
-        }
-        return r;
-      });
+      if (r.id != req.session.user.id) {
+        return user.getRemark(req.session.user.id, r.id)
+        .then(remark => {
+          r.remark = remark.remark;
+          r.groups = remark.groups;
+          return r;
+        })
+        .then(r => user.getEachOther(req.session.user.id, r.id)
+        .then(detail => {
+          r.status = detail.status;
+          return r;
+        }));
+      }
+      return r;
     });
   })
   .then(ret => res.api(ret))
@@ -522,7 +534,7 @@ exports.getInfoByAcc = function (req, res, next) {
  * @apiPermission logined users
  * @apiVersion 0.0.1
  * 
- * @apiParam {String='regroup','unfollow','remove'} act 操作行为
+ * @apiParam {String='regroup','unfollow','outgroup'} act 操作行为
  * @apiParam {Array} follow 被操作的用户id
  * @apiParam {Array} [groups] 改组时需要被分配到的新分组id表
  * 
@@ -553,7 +565,7 @@ exports.batchManage = function (req, res, next) {
       .then(follows => Promise.map(follows, follow => user.unfollow(follow)))
       .then(() => res.api('批量取关成功'))
       .catch(err => res.api_error(err.message));
-    case 'remove':
+    case 'outgroup':
       if (!req.body.gid) {
         return res.api_error(...status.lackParams);
       }
@@ -672,7 +684,7 @@ exports.getGroupMember = function (req, res, next) {
   let member = [];
   let page = req.query.page - 1 || 0;
   let limit = 30;
-  let params = {id: req.params.gid};
+  let params = {id: req.params.gid, creator: req.params.id};
   if (!req.session || !req.session.user || !req.session.user.id || req.session.user.id != req.params.id) {
     params.public = true;
   }

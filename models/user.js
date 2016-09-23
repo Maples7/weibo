@@ -53,12 +53,20 @@ module.exports = (sequelize, DataTypes) => sequelize.define('User', {
         type: DataTypes.INTEGER.UNSIGNED,
         comment: '用户关注(其他用户)数'
     },
-    // followGroup: {
-    //     allowNull: false,
-    //     defaultValue: '未分组 黑名单',
-    //     type: DataTypes.STRING,
-    //     comment: '用户分组名列表'
-    // },
+    blackCount: {
+        allowNull: false,
+        defaultValue: 0,
+        isInt: true,
+        type: DataTypes.INTEGER.UNSIGNED,
+        comment: '用户黑名单人数'
+    },
+    notCount: {
+        allowNull: false,
+        defaultValue: 0,
+        isInt: true,
+        type: DataTypes.INTEGER.UNSIGNED,
+        comment: '用户未分组关注数'
+    },
     weiboCount: {
         allowNull: false,
         defaultValue: 0,

@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => sequelize.define('Group', {
   id: {
     allowNull: false,
-    type: DataTypes.INTEGER(255),
+    type: DataTypes.INTEGER.UNSIGNED,
     autoIncrement: true,
     primaryKey: true,
     comment: '分组id'
@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Group', {
     allowNull: false,
     type: DataTypes.INTEGER.UNSIGNED,
     references: {model: 'Users', key: 'id'},
-    // onDelete: 'CASCADE',
+    onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
     comment: '分组创建者'
   },
@@ -36,11 +36,6 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Group', {
     defaultValue: 0,
     comment: '分组内成员数'
   }
-  // member: {
-  //   allowNull: true,
-  //   type: DataTypes.STRING,
-  //   comment: '分组成员(数组)'
-  // }
 }, {
   timestamps: false,
   indexes: [{

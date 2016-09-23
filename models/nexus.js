@@ -20,22 +20,21 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Nexus', {
     references: {model: 'Users', key: 'id'},
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
-    comment: '被被关注者',
+    comment: '被关注者',
   },
   remark: {
     allowNull: true,
     type: DataTypes.STRING,
     comment: '被关注者备注名'
   },
-  group: {
-    allowNull: true,
-    type: DataTypes.INTEGER(255),
-    references: {model: 'Groups', key: 'id'},
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-    comment: '关注者“全部关注”分组id'
+  toGroup: {
+    allowNull: false,
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: '被关注者是否分组'
   }
 }, {
+  tableName: 'nexus',
   indexes: [{
     name: 'uniq_fans_follow',
     fields: ['fans', 'follow'],

@@ -80,35 +80,40 @@ password: 密码 String
     "code": 0,
     "msg": "request success!"
   }
-}     
-* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注、
-     及groups属性，值为含分组名及分组id的JSON数组
-
-## /users/name/:name    
-通过name获取用户信息 - GET
-
-返回：
+}
 {
   "data": {
-    "id": 1,
-    "name": "bob",
-    "email": "bobmingxie@163.com",
+    "id": 3,
+    "name": "小明",
+    "email": "xiem5@mail2.sysu.edu.cn",
     "password": "e10adc3949ba59abbe56e057f20f883e",
     "headPic": "",
-    "sex": true,
-    "bio": "Hello World",
+    "sex": null,
+    "bio": "这家伙很懒，什么也没写",
     "fansCount": 0,
-    "followCount": 15,
+    "followCount": 0,
+    "blackCount": 0,
+    "notCount": 0,
     "weiboCount": 0,
-    "createTime": 1471867541932,
-    "emailConfirm": false
+    "weiboUpdate": 0,
+    "createTime": 1474623973096,
+    "emailConfirm": false,
+    "remark": "",
+    "groups": []
   },
   "status": {
     "code": 0,
     "msg": "request success!"
   }
 }     
-* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注
+* 若查询别人，则"data"会多出remark属性，值为查询者对被查者的备注、
+     及groups属性，值为含分组名及分组id的JSON数组
+
+## /users/name/:name    
+通过name获取用户信息 - GET
+
+返回：
+同上
 
 ## /users/acc/:acc
 通过name或remark获取用户信息(数组) - GET
@@ -118,7 +123,34 @@ password: 密码 String
 range: 查找范围(全站/全部关注/全部粉丝) 'all'（缺省默认） | 'follow' | 'fans'
 
 返回：
-
+{
+  "data": [
+    {
+      "id": 3,
+      "name": "小明",
+      "email": "xiem5@mail2.sysu.edu.cn",
+      "password": "e10adc3949ba59abbe56e057f20f883e",
+      "headPic": "",
+      "sex": null,
+      "bio": "这家伙很懒，什么也没写",
+      "fansCount": 0,
+      "followCount": 0,
+      "blackCount": 0,
+      "notCount": 0,
+      "weiboCount": 0,
+      "weiboUpdate": 0,
+      "createTime": 1474623973096,
+      "emailConfirm": false,
+      "remark": "",
+      "groups": [],
+      "status": 1
+    }
+  ],
+  "status": {
+    "code": 0,
+    "msg": "request success!"
+  }
+}
 
 ## /users/info
 修改用户信息 - PUT
@@ -318,7 +350,7 @@ name: 新分组名 String
 返回:
 {
   "data": { 
-    "common": [{
+    "member": [{
       "id": 1,
       "name": "bob",
       "email": "bobmingxie@163.com",
@@ -330,7 +362,10 @@ name: 新分组名 String
       "followCount": 15,
       "weiboCount": 0,
       "createTime": 1471867541932,
-      "emailConfirm": false
+      "emailConfirm": false,
+      "remark": "",
+      "groups": [],
+      "status": 2
     }],
     "total": 1
   },
@@ -339,9 +374,7 @@ name: 新分组名 String
     "msg": "request success!"
   }
 }
-* common 为结果数组，total为总共页数
-* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注、
-      及groups属性，值为含分组名及分组id的JSON数组
+* member 为结果数组，total为总共页数
 
 ## /users/groups/:id
 全部分组 - GET 
@@ -351,25 +384,31 @@ name: 新分组名 String
 
 返回：    
 {
-  "data": [{
-    "gid": 3,
-    "creator": 1
-    "name": "老同学",
-    "description": "bob的老同学",
-    "public": false,
-    "count": 0,
-    "createAt": 2016-08-31 19:00:00,
-    "updateAt": 2016-08-31 19:00:00,
-    "deleteAt": 0,
-    "mem": []
-  }],
+  "data": [
+    {
+      "id": 1,
+      "creator": 4,
+      "name": "同一个人",
+      "description": "自己",
+      "public": 0,
+      "count": 0
+    },
+    {
+      "id": 2,
+      "creator": 4,
+      "name": "老友",
+      "description": null,
+      "public": 1,
+      "count": 0
+    }
+  ],
   "status": {
     "code": 0,
     "msg": "request success!"
   }
 }
-* 看自己的全部分组会包含'未分组'和'黑名单'在内的非公开非组，会有mem属性，内含至多三个元素，为该分组内头三个成员的个人信息
-* 看他人的全部分组只会含公开分组，不含mem属性
+* 看自己的全部分组会包含非公开非组
+* 看他人的全部分组只会含公开分组
 
 ## /users/relationship
 关注、取关、备注、拉黑、移黑、改组、移粉 - POST    
@@ -379,7 +418,7 @@ name: 新分组名 String
 act: 指明操作 'follow' | 'unfollow' | 'remark' | 'black' | 'unblack' | 'regroup' | 'remove'
 [follow: 关注/取关/备注/拉黑/移黑/改组 的对象用户id Number]    
 [fans: 移粉 的对象用户id Number]    
-[groups: 关注/改组 的对象分组id组成的数组 Array]    
+[groups: 改组 的对象分组id组成的数组 Array]    
 [remark: 备注 的对象备注名 String]
 
 返回：
@@ -389,7 +428,7 @@ act: 指明操作 'follow' | 'unfollow' | 'remark' | 'black' | 'unblack' | 'regr
 （需要登录）
 
 传入(body):
-act: 操作行为（改组/取关/移出此组） 'regroup' | 'unfollow' | 'remove'
+act: 操作行为（改组/取关/移出此组） 'regroup' | 'unfollow' | 'outgroup'
 follow: 被操作的用户id Array
 [groups: 改组时需要被分配到的新分组id表 Array]
 [gid: 移出此组的分组id Number]
