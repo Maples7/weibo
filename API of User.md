@@ -325,15 +325,12 @@ name: 新分组名 String
 返回：    
 {
   "data": {
-    "gid": 3,
-    "creator": 1
-    "name": "老同学",
-    "description": "bob的老同学",
-    "public": false,
-    "count": 0,
-    "createAt": 2016-08-31 19:00:00,
-    "updateAt": 2016-08-31 19:00:00,
-    "deleteAt": 0
+    "id": 2,
+    "creator": 4,
+    "name": "老友",
+    "description": null,
+    "public": true,
+    "count": 1
   },
   "status": {
     "code": 0,
@@ -341,7 +338,7 @@ name: 新分组名 String
   }
 }
 
-## /users/member/:id/:gid    
+## /users/member/:gid    
 分组成员 - GET
 
 传入(query):
@@ -349,29 +346,41 @@ name: 新分组名 String
 
 返回:
 {
-  "data": { 
-    "member": [{
-      "id": 1,
-      "name": "bob",
-      "email": "bobmingxie@163.com",
-      "password": "e10adc3949ba59abbe56e057f20f883e",
-      "headPic": "",
-      "sex": true,
-      "bio": "Hello World",
-      "fansCount": 0,
-      "followCount": 15,
-      "weiboCount": 0,
-      "createTime": 1471867541932,
-      "emailConfirm": false,
-      "remark": "",
-      "groups": [],
-      "status": 2
-    }],
-    "total": 1
+  "data": {
+    "num": 1,
+    "total": 1,
+    "member": [
+      {
+        "id": 2,
+        "name": "Bob",
+        "email": "bobmingxie@163.com",
+        "password": "e10adc3949ba59abbe56e057f20f883e",
+        "headPic": "",
+        "sex": null,
+        "bio": "这家伙很懒，什么也没写",
+        "fansCount": 1,
+        "followCount": 0,
+        "blackCount": 0,
+        "notCount": 0,
+        "weiboCount": 0,
+        "weiboUpdate": 0,
+        "createTime": 1474623970786,
+        "emailConfirm": false,
+        "status": 0,
+        "groups": []
+      }
+    ]
   },
   "status": {
     "code": 0,
     "msg": "request success!"
+  }
+}
+{
+  "data": "查看分组失败（不存在或无权限）",
+  "status": {
+    "code": -1,
+    "msg": "api error"
   }
 }
 * member 为结果数组，total为总共页数
@@ -408,6 +417,22 @@ name: 新分组名 String
   }
 }
 * 看自己的全部分组会包含非公开非组
+{
+  "data": [
+    {
+      "id": 2,
+      "creator": 4,
+      "name": "老友",
+      "description": null,
+      "public": 1,
+      "count": 1
+    }
+  ],
+  "status": {
+    "code": 0,
+    "msg": "request success!"
+  }
+}
 * 看他人的全部分组只会含公开分组
 
 ## /users/relationship
@@ -422,6 +447,14 @@ act: 指明操作 'follow' | 'unfollow' | 'remark' | 'black' | 'unblack' | 'regr
 [remark: 备注 的对象备注名 String]
 
 返回：
+{
+  "data": "修改备注成功",
+  "status": {
+    "code": 0,
+    "msg": "request success!"
+  }
+}
+
 
 ## users/relationship
 （全部关注/某分组中）批量管理 - PUT
@@ -429,12 +462,18 @@ act: 指明操作 'follow' | 'unfollow' | 'remark' | 'black' | 'unblack' | 'regr
 
 传入(body):
 act: 操作行为（改组/取关/移出此组） 'regroup' | 'unfollow' | 'outgroup'
-follow: 被操作的用户id Array
+follows: 被操作的用户id Array
 [groups: 改组时需要被分配到的新分组id表 Array]
 [gid: 移出此组的分组id Number]
 
 返回：
-
+{
+  "data": "批量**成功",
+  "status": {
+    "code": 0,
+    "msg": "request success!"
+  }
+}
 
 ## /users/follow/:id
 全部关注 - GET
@@ -445,23 +484,50 @@ follow: 被操作的用户id Array
 
 返回：
 {
-  "data":{ 
-    "follow": [{
-      "id": 1,
-      "name": "bob",
-      "email": "bobmingxie@163.com",
-      "password": "e10adc3949ba59abbe56e057f20f883e",
-      "headPic": "",
-      "sex": true,
-      "bio": "Hello World",
-      "fansCount": 0,
-      "followCount": 15,
-      "weiboCount": 0,
-      "createTime": 1471867541932,
-      "emailConfirm": false,
-      "remark": '',
-      "groups": [{id: 3, name: '老同学', description:...}]
-    }],
+  "data": {
+    "fans": [
+      {
+        "id": 3,
+        "name": "小明",
+        "email": "xiem5@mail2.sysu.edu.cn",
+        "password": "e10adc3949ba59abbe56e057f20f883e",
+        "headPic": "",
+        "sex": null,
+        "bio": "这家伙很懒，什么也没写",
+        "fansCount": 1,
+        "followCount": 1,
+        "blackCount": 1,
+        "notCount": 1,
+        "weiboCount": 0,
+        "weiboUpdate": 0,
+        "createTime": 1474623973096,
+        "emailConfirm": false,
+        "remark": "",
+        "status": 1,
+        "groups": []
+      },
+      {
+        "id": 4,
+        "name": "-明",
+        "email": "969827636@qq.com",
+        "password": "e10adc3949ba59abbe56e057f20f883e",
+        "headPic": "",
+        "sex": null,
+        "bio": "这家伙很懒，什么也没写",
+        "fansCount": 0,
+        "followCount": 3,
+        "blackCount": 0,
+        "notCount": 2,
+        "weiboCount": 0,
+        "weiboUpdate": 0,
+        "createTime": 1474623976449,
+        "emailConfirm": false,
+        "remark": "",
+        "status": 1,
+        "groups": []
+      }
+    ],
+    "num": 1,
     "total": 1
   },
   "status": {
@@ -478,21 +544,48 @@ follow: 被操作的用户id Array
 [page: 页码 Number]
 [sort: 排序方式（关注时间/粉丝数/互相关注/我未关注） 'time' | 'fans' | 'each' | 'not']
 {
-  "data":{ 
-    "fans": [{
-      "id": 1,
-      "name": "bob",
-      "email": "bobmingxie@163.com",
-      "password": "e10adc3949ba59abbe56e057f20f883e",
-      "headPic": "",
-      "sex": true,
-      "bio": "Hello World",
-      "fansCount": 0,
-      "followCount": 15,
-      "weiboCount": 0,
-      "createTime": 1471867541932,
-      "emailConfirm": false
-    }],
+  "data": {
+    "fans": [
+      {
+        "id": 3,
+        "name": "小明",
+        "email": "xiem5@mail2.sysu.edu.cn",
+        "password": "e10adc3949ba59abbe56e057f20f883e",
+        "headPic": "",
+        "sex": null,
+        "bio": "这家伙很懒，什么也没写",
+        "fansCount": 1,
+        "followCount": 1,
+        "blackCount": 1,
+        "notCount": 1,
+        "weiboCount": 0,
+        "weiboUpdate": 0,
+        "createTime": 1474623973096,
+        "emailConfirm": false,
+        "status": 1,
+        "groups": []
+      },
+      {
+        "id": 4,
+        "name": "-明",
+        "email": "969827636@qq.com",
+        "password": "e10adc3949ba59abbe56e057f20f883e",
+        "headPic": "",
+        "sex": null,
+        "bio": "这家伙很懒，什么也没写",
+        "fansCount": 0,
+        "followCount": 3,
+        "blackCount": 0,
+        "notCount": 2,
+        "weiboCount": 0,
+        "weiboUpdate": 0,
+        "createTime": 1474623976449,
+        "emailConfirm": false,
+        "status": 1,
+        "groups": []
+      }
+    ],
+    "num": 1,
     "total": 1
   },
   "status": {
@@ -511,66 +604,48 @@ follow: 被操作的用户id Array
 
 返回：
 {
-  "data":{ 
-    "common": [{
-      "id": 1,
-      "name": "bob",
-      "email": "bobmingxie@163.com",
-      "password": "e10adc3949ba59abbe56e057f20f883e",
-      "headPic": "",
-      "sex": true,
-      "bio": "Hello World",
-      "fansCount": 0,
-      "followCount": 15,
-      "weiboCount": 0,
-      "createTime": 1471867541932,
-      "emailConfirm": false
-    }],
-    "total": 1
+  "data": {
+    "num": 1,
+    "total": 1,
+    "common": [
+      {
+        "id": 1,
+        "name": "鲍勃",
+        "email": "bobmingxie@vip.qq.com",
+        "password": "e10adc3949ba59abbe56e057f20f883e",
+        "headPic": "",
+        "sex": null,
+        "bio": "这家伙很懒，什么也没写",
+        "fansCount": 2,
+        "followCount": 0,
+        "blackCount": 0,
+        "notCount": 0,
+        "weiboCount": 0,
+        "weiboUpdate": 0,
+        "createTime": 1474623957882,
+        "emailConfirm": false,
+        "remark": null,
+        "groups": [],
+        "status": 2
+      }
+    ]
   },
   "status": {
     "code": 0,
     "msg": "request success!"
   }
 }
-* common 为结果数组，total为总共页数
-* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注、
-      及groups属性，值为含分组名及分组id的JSON数组
+* common 为结果数组，total为总共页数，num为总人数
 
 ## /users/comfans/:id
 共同粉丝 - GET
-[page: 页码]
+（需要登录）
 
 传入(query):
-无
+[page: 页码]
 
 返回：
-{
-  "data":{ 
-    "common": [{
-      "id": 1,
-      "name": "bob",
-      "email": "bobmingxie@163.com",
-      "password": "e10adc3949ba59abbe56e057f20f883e",
-      "headPic": "",
-      "sex": true,
-      "bio": "Hello World",
-      "fansCount": 0,
-      "followCount": 15,
-      "weiboCount": 0,
-      "createTime": 1471867541932,
-      "emailConfirm": false
-    }],
-    "total": 1
-  },
-  "status": {
-    "code": 0,
-    "msg": "request success!"
-  }
-}
-* common 为结果数组，total为总共页数
-* 若当前用户查询自己关注的用户且设置了备注，则"data"会多出remark属性，值为查询者对被查者的备注、
-      及groups属性，值为含分组名及分组id的JSON数组
+同上
 
 ## /users/black    
 自己的黑名单 - GET    
@@ -581,22 +656,28 @@ follow: 被操作的用户id Array
 
 返回：
 {
-  "data":{ 
-    "balck": [{
-      "id": 1,
-      "name": "bob",
-      "email": "bobmingxie@163.com",
-      "password": "e10adc3949ba59abbe56e057f20f883e",
-      "headPic": "",
-      "sex": true,
-      "bio": "Hello World",
-      "fansCount": 0,
-      "followCount": 15,
-      "weiboCount": 0,
-      "createTime": 1471867541932,
-      "emailConfirm": false
-    }],
-    "total": 1
+  "data": {
+    "num": 1,
+    "total": 1,
+    "black": [
+      {
+        "id": 2,
+        "name": "Bob",
+        "email": "bobmingxie@163.com",
+        "password": "e10adc3949ba59abbe56e057f20f883e",
+        "headPic": "",
+        "sex": null,
+        "bio": "这家伙很懒，什么也没写",
+        "fansCount": 1,
+        "followCount": 0,
+        "blackCount": 0,
+        "notCount": 0,
+        "weiboCount": 0,
+        "weiboUpdate": 0,
+        "createTime": 1474623970786,
+        "emailConfirm": false
+      }
+    ]
   },
   "status": {
     "code": 0,

@@ -545,11 +545,17 @@ exports.batchManage = function (req, res, next) {
     return res.api_error('请登录后再批量管理');
   }
   let act = req.body.act;
-  let follows = req.body.follows;
+  let follows = JSON.parse(req.body.follows);
   let fans = req.session.user.id;
   switch (act) {
     case 'regroup':
-      let groups = req.body.groups;
+      let groups;
+      try {
+       groups = JSON.parse(req.body.groups);
+      }
+      catch(err) {
+        return res.api_error(...lackParams);
+      }
       return Promise.map(follows, f => {
         f = {fans: fans, follow: f, groups: groups};
         return f;
@@ -595,15 +601,23 @@ exports.batchManage = function (req, res, next) {
  */
 exports.getFollow = function (req, res, next) {
   let id = req.params.id;
+  let me = null;
+  if (req.session && req.session.user && req.session.user.id) {
+    me = req.session.user.id;
+  }
   let sort = req.query.sort;
   let page = req.query.page - 1 || 0;
   let limit = 30;
-  return user.getFollow(id, sort)
-  .then(ret => res.api({
-    follow: ret.slice(page * limit, (page + 1) * limit),
-    total: Math.ceil(ret.length / limit) 
+  return user.getFollow(id, sort, me)
+  .then(follow => res.api({
+    num: follow.length,
+    follow: follow.slice(page * limit, (page + 1) * limit),
+    total: Math.ceil(follow.length / limit) 
   }))
-  .catch(err => res.api_error(err.message));
+  .catch(err => {
+    console.log(err);
+    res.api_error(err.message)
+  });
 }
 
 /**
@@ -620,11 +634,16 @@ exports.getFollow = function (req, res, next) {
  */
 exports.getFans = function (req, res, next) {
   let id = req.params.id;
+  let me = null;
+  if (req.session && req.session.user && req.session.user.id) {
+    me = req.session.user.id;
+  }
   let sort = req.query.sort;
   let page = req.query.page - 1 || 0;
   let limit = 30;
-  return user.getFans(id, sort)
-  .then(ret => res.api({
+  return user.getFans(id, sort, me)
+  .then(fans => res.api({
+    num: fans.length,
     fans: fans.slice(page * limit, (page + 1) * limit),
     total: Math.ceil(fans.length / limit) 
   }))
@@ -662,7 +681,7 @@ exports.getGroups = function (req, res, next) {
  */
 exports.getGroupDetail = function (req, res, next) {
   if (!req.session || !req.session.user || !req.session.user.id) {
-    throw new Error('请登录后查看分组');
+    return res.api_error('请登录后查看分组');
   }
   return user.getGroupDetail(req.session.user.id, req.params.gid)
   .then(ret => res.api(ret))
@@ -684,26 +703,34 @@ exports.getGroupMember = function (req, res, next) {
   let member = [];
   let page = req.query.page - 1 || 0;
   let limit = 30;
-  let params = {id: req.params.gid, creator: req.params.id};
+  let params = {id: req.params.gid};
   if (!req.session || !req.session.user || !req.session.user.id || req.session.user.id != req.params.id) {
     params.public = true;
+    if (!params.id) {
+      return res.api_error('请登录查看自己的未分组');
+    }
   }
-  return user.getGroupMember(params)
+  let me;
+  if (req.session && req.session.user) {
+    me = req.session.user.id;
+  }
+  return user.getGroupMember(params, me)
   .then(ret => {
     console.log(ret);
-    if (ret.length) {
+    if (!ret.length) {
       return member;
     }
-    return Promise.each(ret, r => {
+    return Promise.map(ret, r => {
       return user.getInfo(r.id).then(re => {
         re.status = r.status;
         re.groups = r.groups;
         return re;
       })
       .then(re => member.push(re));
-    })
+    });
   })
   .then(() => res.api({
+    num: member.length,
     total: Math.ceil(member.length / limit),
     member: member.slice(page * limit, (page + 1) * limit)
   }))
@@ -729,12 +756,24 @@ exports.getCommonFollow = function (req, res, next) {
   let uid = req.params.id;
   let page = req.query.page - 1 || 0;
   let limit = 30;
-  let common = [];
-  return user.getCommonFollow(id, uid, page)
-  .then(ret => Promise.each(ret, r => {
-    return user.getInfo(r).then(re => common.push(re));
+  return user.getCommonFollow(id, uid)
+  .then(ret => Promise.map(ret, r => {
+    return user.getInfo(r).then(re => {
+      r = re;
+      return r;
+    })
+    .then(r => user.getRemark(id, r.id).then(rem => {
+      r.remark = rem.remark;
+      r.groups = rem.groups;
+      return r;
+    }))
+    .then(r => user.getEachOther(id, r.id).then(sta => {
+      r.status = sta.status;
+      return r;
+    }));
   }))
-  .then(() => res.api({
+  .then(common => res.api({
+    num: common.length,
     total: Math.ceil(common.length / limit),
     common: common.slice(page * limit, (page + 1) * limit)
   }))
@@ -760,12 +799,24 @@ exports.getCommonFans = function (req, res, next) {
   let uid = req.params.id;
   let page = req.query.page - 1 || 0;
   let limit = 30;
-  let common = [];
-  return user.getCommonFans(id, uid, page)
-  .then(ret => Promise.each(ret, r => {
-    return user.getInfo(r).then(re => common.push(re));
+  return user.getCommonFans(id, uid)
+  .then(ret => Promise.map(ret, r => {
+    return user.getInfo(r).then(re => {
+      r = re;
+      return r;
+    })
+    .then(r => user.getRemark(id, r.id).then(rem => {
+      r.remark = rem.remark;
+      r.groups = rem.groups;
+      return r;
+    }))
+    .then(r => user.getEachOther(id, r.id).then(sta => {
+      r.status = sta.status;
+      return r;
+    }));
   }))
-  .then(() => res.api({
+  .then(common => res.api({
+    num: common.length,
     total: Math.ceil(common.length / limit),
     common: common.slice(page * limit, (page + 1) * limit)
   }))
@@ -788,14 +839,15 @@ exports.getBlack = function (req, res, next) {
     throw new Error('请登录后查看黑名单');
   }
   let id = req.session.user.id;
-  let page = req.params.id;
+  let page = req.params.id - 1 || 0;
   let limit = 30;
   let black = [];
   return user.getBlack(id)
-  .then(ret => Promise.each(ret, r => {
-    return user.getInfo(r).then(re => black.push(re));
+  .then(ret => Promise.map(ret, r => {
+    return user.getInfo(r.follow).then(re => black.push(re));
   }))
   .then(() => res.api({
+    num: black.length,
     total: Math.ceil(black.length / limit),
     black: black.slice(page * limit, (page + 1) * limit)
   }))

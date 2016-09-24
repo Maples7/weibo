@@ -31,7 +31,7 @@ router.put('/users/group/:gid', user.modifyGroup);
 router.delete('/users/group/:gid', user.delGroup);
 router.get('/users/group/:gid', user.getGroupDetail);
 router.get('/users/groups/:id', user.getGroups);
-router.get('/users/member/:id/:gid', user.getGroupMember);
+router.get('/users/member/:gid', user.getGroupMember);
 
 // 关系图图谱
 router.post('/users/relationship', user.modifyRelationship);
@@ -39,5 +39,5 @@ router.put('/users/relationship', user.batchManage);
 router.get('/users/follow/:id', user.getFollow);
 router.get('/users/fans/:id', user.getFans);
 router.get('/users/black', user.getBlack);
-router.get('.users/comfollow/:id', user.getCommonFollow);
+router.get('/users/comfollow/:id', user.getCommonFollow);
 router.get('/users/comfans/:id', user.getCommonFans);

@@ -44,6 +44,7 @@ exports.getInfoByAcc = getInfoByAcc;
 exports.getRemark = getRemark;
 exports.getFollow = getFollow;
 exports.getFans = getFans;
+exports.getBlack = getBlack;
 exports.getGroups = getGroups;
 exports.getGroupDetail = getGroupDetail;
 exports.getGroupMember = getGroupMember;
@@ -306,7 +307,7 @@ function regroup(info) {
       return db.Nexus.update({toGroup: false}, {where: {fans: info.fans, follow: info.follow}});
     }
     return Promise.map(info.groups, g => db.Relationship.findOrCreate({where: {fans: info.fans, follow: info.follow, group: g}}))
-    .then(() => dbNexus.update({toGroup: true}, {where: {fans: info.fans, follow: info.follow}}));
+    .then(() => db.Nexus.update({toGroup: true}, {where: {fans: info.fans, follow: info.follow}}));
   })
   // 更新发起关注方各分组成员数
   .then(() => updateGroupsCount(info.fans));
@@ -374,7 +375,7 @@ function remove(info) {
  * outgroup 移出分组
  */
 function outgroup(info) {
-  return db.Relationship.destroy({where: {fans: info.fans, follow: info.follow, group: gid}})
+  return db.Relationship.destroy({where: {fans: info.fans, follow: info.follow, group: info.gid}})
   .then(() => updateGroupsCount(info.fans));  // 更新未分组成员数
 }
 
@@ -605,7 +606,7 @@ function getRemark(fans, follow) {
 /**
  * getFollow 获取关注列表
  */
-function getFollow(id, sort) {
+function getFollow(id, sort, me) {
   return db.Nexus.findAll({where: {fans: id}, order: 'id DESC'})
   .then(ret => Promise.map(ret, r => {
     r = r.dataValues.follow;
@@ -616,10 +617,15 @@ function getFollow(id, sort) {
       r = re;
       return r;
     })
-    .then(r => getRemark(id, r.id))
+    .then(r => getRemark(me, r.id))
     .then(rem => {
       r.remark = rem.remark;
       r.groups = rem.groups;
+      return r;
+    })
+    .then(r => getEachOther(me, r.id))
+    .then(sta => {
+      r.status = sta.status;
       return r;
     });
   })) // 将用户信息、备注、分组丰富进数组
@@ -657,15 +663,21 @@ function getFollow(id, sort) {
 /**
  * getFans 获取粉丝列表
  */
-function getFans(id, sort) {
+function getFans(id, sort, me) {
   return db.Nexus.findAll({where: {follow: id}, order: 'id DESC'})
-  .then(ret => Promise.each(ret, r => {
+  .then(ret => Promise.map(ret, r => {
     r = r.dataValues.fans;
     return r;
   })) // 拿到所有粉丝id数组
-  .then(ret => Promise.each(ret, r => {
+  .then(ret => Promise.map(ret, r => {
     return getInfo(r).then(re => {
       r = re;
+      return r;
+    })
+    .then(r => getEachOther(me, r.id))
+    .then(sta => {
+      r.status = sta.status;
+      r.groups = sta.groups;
       return r;
     });
   })) // 将用户信息丰富进数组
@@ -731,12 +743,12 @@ function getGroupDetail(id, gid) {
 /**
  * getGroupMember 获取分组成员
  */
-function getGroupMember(params) {
+function getGroupMember(params, me) {
   // 查看自己的未分组成员
   if (params.id == 0 && !params.public) {
-    return db.Nexus.findAll({where: {fans: params.creator, toGroup: false}, raw: true})
+    return db.Nexus.findAll({where: {fans: me, toGroup: false}, raw: true})
     .then(ret => Promise.map(ret, r => {
-      return getEachOther(params.creator, r.follow)
+      return getEachOther(me, r.follow)
       .then(info => {
         r = {id: r.follow, status: info.status, groups: []};
         return r;
@@ -744,20 +756,19 @@ function getGroupMember(params) {
     }));
   }
 
-  return db.Group.findOne({where: params})
+  return db.Group.findOne({where: params, raw: true})
   .then(one => {
     if (!one) {
       throw new Error('查看分组失败（不存在或无权限）');
     }
     else {
-      let creator = params.creator;
       return db.Relationship.findAll({where: {group: params.id}, order: 'id DESC'})
       .then(ret => Promise.map(ret, r => {
         r = r.dataValues.follow;
         return r;
       })) // 获取全部成员id数组
       .then(ret => Promise.map(ret, r => {
-        return getEachOther(creator, r).then(info => {
+        return getEachOther(me, r).then(info => {
           r = {id: r, status: info.status,  groups: info.groups};
           return r;
         });
@@ -769,21 +780,22 @@ function getGroupMember(params) {
 /**
  * getCommonFollow 获取共同关注
  */
-function getCommonFollow(id, uid, page) {
+function getCommonFollow(id, uid) {
   let common = [];
   return db.Nexus.findAll({where: {fans: id}, raw: true})
-  // 拿到本人所有关注数组
+  // 拿到本人所有关注记录数组
   .then(ret => {
     if (!ret) {
       return common;
     }
-    return Promise.each(ret, r => db.Nexus.findOne({where: {fans: uid, follow: r.id}, raw: true})
+    return Promise.map(ret, r => db.Nexus.findOne({where: {fans: uid, follow: r.follow}, raw: true})
       .then(one => {
         if (one) {
-          common.push(one.dataValues.follow);
+          common.push(one.follow);
         }
         return r;
-      }));
+      })
+    );
   })
   .then(() => common);
 }
@@ -791,7 +803,7 @@ function getCommonFollow(id, uid, page) {
 /**
  * getCommonFans 获取共同粉丝
  */
-function getCommonFans(id, uid, page) {
+function getCommonFans(id, uid) {
   let common = [];
   // 先获取全部“我的粉丝”
   return db.Nexus.findAll({where: {follow: id}, raw: true})
@@ -800,10 +812,10 @@ function getCommonFans(id, uid, page) {
     if (!ret) {
       return common;
     }
-    return Promise.each(ret, r => db.Nexus.findOne({where: {fans: r.id, follow: uid}, raw: true})
+    return Promise.each(ret, r => db.Nexus.findOne({where: {fans: r.fans, follow: uid}, raw: true})
       .then(one => {
         if (one) {
-          common.push(one.dataValues.follow);
+          common.push(one.fans);
         }
         return r;
       }));
@@ -815,7 +827,6 @@ function getCommonFans(id, uid, page) {
  * getBlack 获取黑名单
  */
 function getBlack(id) {
-  let black = [];
   return db.Black.findAll({where: {fans: id}, raw: true, order: 'id DESC'});
 }
 
@@ -826,7 +837,7 @@ function getEachOther(a, b) {
   return db.Black.findOne({where: {fans: a, follow: b}})
   .then(ret => {
     if (ret) {
-      return {status: 0, groups: [r.dataValues.group]}; // '已拉黑'
+      return {status: 0, groups: []}; // '已拉黑'
     }
     else {
       return db.Nexus.findOne({where: {fans: a, follow: b}})
@@ -835,9 +846,6 @@ function getEachOther(a, b) {
           return {status: 1, groups: []}; // '+关注'
         }
         else {
-          if (!one.toGroup) {
-            return [];
-          }
           // 拿到所有分组记录数组
           return db.Relationship.findAll({where: {fans: a, follow: b}, raw: true})
           // 将数组细化为分组信息
@@ -849,10 +857,13 @@ function getEachOther(a, b) {
             });
           })) // 获取所有分组id数组
           .then(groups => {
+            // if (!groups.length) {
+            //   return {staus: 1, groups: [0]};  // '已关注'，未分组
+            // }
             return db.Nexus.findOne({where: {fans: b, follow: a}})
             .then(one => {
               if (!one) {
-                return {status: 2, groups: groups};  // '已关注'
+                return {status: 2, groups: groups};  // '已关注'，groups可能为空数组（未分组）
               }
               else {
                 return {status: 3, groups: groups};  // '互相关注'
