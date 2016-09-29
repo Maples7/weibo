@@ -32,9 +32,11 @@ module.exports = new class {
             }
         }
 
+        let where = {receiver: uid, markHint: 0};
+
         return db.models.Message.findAll({
             raw: true,
-            where: {receiver: uid, markHint: 0},
+            where: where,
             order: [['createTime', 'DESC']],
         }).map(msg =>  
             Promise.all([
@@ -43,6 +45,14 @@ module.exports = new class {
                 ),
                 getItemInfo(msg)
             ]).return(msg)
-        ).then(msgs => _.groupBy(msgs, 'itemType'));
+        ).then(msgs => _.groupBy(msgs, 'itemType'))
+        .tap(() =>
+            db.models.Message.Update({
+                markHint: 1
+            }, {
+                where: where,
+                fields: ['markHint']
+            })
+        );
     }
 }();
