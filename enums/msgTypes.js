@@ -1,6 +1,8 @@
 module.exports = [
-    'FAVOR_COMMENT', 
+    'FORWARD_WEIBO',
+    'COMMENT',
+    'WEIBO_AT',
     'FAVOR_WEIBO', 
-    'AT', 
-    'COMMENT'
+    'FAVOR_COMMENT',
+    'COMMENT_AT'
 ];

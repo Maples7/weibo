@@ -9,7 +9,6 @@ const parseContent = require('../tools/parseContent');
 
 const _getWeiboBaseInfo = Symbol('getWeiboBaseInfo');
 const _updateCount = Symbol('updateCount');
-const _getCommentDetail = Symbol('getCommentDetail');
 
 module.exports = new class {
     /**
@@ -174,7 +173,7 @@ module.exports = new class {
                 let forwardContent = '';
                 if (options.forwardSync) {
                     if (keyValues.replyId) {
-                        this[_getCommentDetail](keyValues.replyId).then(cmDetail => {
+                        this.getCommentDetail(keyValues.replyId).then(cmDetail => {
                             forwardContent += '回复@' + cmDetail.author + ':'
                                 + keyValues.content + '//@' + cmDetail.author + ':'
                                 + cmDetail.content;
@@ -208,7 +207,7 @@ module.exports = new class {
     /**
      * 获取单条评论详情
      */
-    [_getCommentDetail](cmId) {
+    getCommentDetail(cmId) {
         return cache.hget(cacheKey.commentDetail(cmId), () => db.models.Comment.findById(cmId, {raw: true}));
     }
 
@@ -226,7 +225,7 @@ module.exports = new class {
             attributes: ['id'],
             order: [['createTime', 'DESC']],
             raw: true
-        })).map(cmObj => this[_getCommentDetail](cmObj.id)).then(cmList => {
+        })).map(cmObj => this.getCommentDetail(cmObj.id)).then(cmList => {
             if (options.offset === 0) {
                 let totalFavorCount = _.sumBy(cmList, o => o.favorCount);
                 let totalCommentCount = cmList.length;
