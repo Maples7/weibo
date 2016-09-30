@@ -54,10 +54,5 @@ module.exports = (sequelize, DataTypes) => sequelize.define('Message', {
         comment: '消息创建时间'
     }
 }, {
-    timestamps: false,
-    indexes: [{
-        name: 'uniq_sender_receiver_itemId_itemType',
-        fields: ['sender', 'receiver', 'itemId', 'itemType'],
-        unique: true
-    }]
+    timestamps: false
 });

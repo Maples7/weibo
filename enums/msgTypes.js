@@ -1,5 +1,4 @@
 module.exports = [
-    'FORWARD_WEIBO',
     'COMMENT',
     'WEIBO_AT',
     'FAVOR_WEIBO', 
