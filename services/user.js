@@ -250,6 +250,15 @@ function follow(info) {
     }
     return db.Nexus.create({fans: info.fans, follow: info.follow, toGroup: false});
   })
+  .then(() => db.Message.Create({
+    sender: 0,
+    receiver: info.follow,
+    itemId: 0,
+    itemType: 'NEW_FANS',
+    markRead: false,
+    markHint: false,
+    createTime: Date.now()
+  }))
   .then(() => updateGroupsCount(info.fans)) // 更新关注方未分组成员数
   .then(() => updateFollowCount(info.fans)) // 更新关注方关注数
   .then(() => updateFansCount(info.follow));  // 更新被关注方粉丝数
@@ -538,14 +547,14 @@ function getInfoByName(name) {
 function getInfoByAcc(acc, me, range) {
   switch (range) {
     case 'fans':
-      return getFans(me, 'time').then(fans => Promise.each(fans, (f, index) => {
+      return getFans(me, 'time', me).then(fans => Promise.each(fans, (f, index) => {
         if (f.name != acc && f.remark != acc) {
           fans.splice(index, 1);
         }
         return fans;
       }));
     case 'follow':
-      return getFollow(me, 'time').then(follow => Promise.each(follow, (f, index) => {
+      return getFollow(me, 'time', me).then(follow => Promise.each(follow, (f, index) => {
         if (f.name != acc && f.remark != acc) {
           follow.splice(index, 1);
         }
@@ -672,6 +681,11 @@ function getFans(id, sort, me) {
   .then(ret => Promise.map(ret, r => {
     return getInfo(r).then(re => {
       r = re;
+      return r;
+    })
+    .then(r => getRemark(me, r.id))
+    .then(rem => {
+      r.remark = rem.remark;
       return r;
     })
     .then(r => getEachOther(me, r.id))

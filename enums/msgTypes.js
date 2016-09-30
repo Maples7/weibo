@@ -3,5 +3,6 @@ module.exports = [
     'WEIBO_AT',
     'FAVOR_WEIBO', 
     'FAVOR_COMMENT',
-    'COMMENT_AT'
+    'COMMENT_AT',
+    'NEW_FANS'
 ];
